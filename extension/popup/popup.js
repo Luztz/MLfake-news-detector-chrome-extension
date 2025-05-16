@@ -168,6 +168,14 @@ const handleFeedback = async () => {
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
+    // Autofill current tab's URL
+    if (chrome.tabs) {
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            if (tabs && tabs[0] && tabs[0].url) {
+                DOM_ELEMENTS.urlInput.value = tabs[0].url;
+            }
+        });
+    }
     // Analyze button click
     DOM_ELEMENTS.analyzeBtn.addEventListener('click', handleAnalyze);
 
