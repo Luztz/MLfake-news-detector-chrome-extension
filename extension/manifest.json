@@ -1,24 +1,42 @@
 {
-    "name": "Fake News Extension",
-    "description": "An extension which alerts a user to potential fake news",
-    "version": "1.0",
     "manifest_version": 3,
-    "background": {
-        "service_worker": "background.js"
-    },
-    "content_scripts": [{
-        "matches" : ["*://*/*"],
-        "js": ["jquery-3.6.0.min.js", "mlrequest.js"],
-        "run_at": "document_end"
-      }],
-    "permissions": ["storage", "tabs", "scripting", "activeTab", "nativeMessaging"],
-    "icons": {
-      "16": "/images/16.png",
-      "32": "/images/32.png",
-      "48": "/images/48.png",
-      "128": "/images/128.png"
-    },
+    "name": "Fake News Detector RF",
+    "version": "1.0",
+    "description": "Detect fake news using Random Forest machine learning model",
+    "permissions": [
+        "activeTab",
+        "storage",
+        "tabs",
+        "scripting"
+    ],
+    "host_permissions": [
+        "http://localhost:5000/*",
+        "https://localhost:5000/*",
+        "http://127.0.0.1:5000/*",
+        "https://127.0.0.1:5000/*",
+        "https://*.ngrok.io/*",
+        "<all_urls>"
+    ],
     "action": {
-        "default_popup": "popup.html"
+        "default_popup": "popup/popup.html",
+        "default_icon": {
+            "16": "images/16.png",
+            "48": "images/48.png",
+            "128": "images/128.png"
+        }
+    },
+    "icons": {
+        "16": "images/16.png",
+        "48": "images/48.png",
+        "128": "images/128.png"
+    },
+    "content_scripts": [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["content.js"]
+        }
+    ],
+    "content_security_policy": {
+        "extension_pages": "script-src 'self'; object-src 'self'; connect-src 'self' http://localhost:5000 https://localhost:5000 http://127.0.0.1:5000 https://127.0.0.1:5000 https://*.ngrok.io"
     }
-  }
+}

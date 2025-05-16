@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="popup.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  </head>
+  <body>
+    <div class="body">
+      <div class="popup-card">
+        <!-- Header Section -->
+        <div class="header">
+          <img src="../images/48.png" alt="Fake News Detector" id="main-logo">
+          <h1>Fake News Detector</h1>
+        </div>
+
+        <!-- Input Section -->
+        <div class="input-section">
+          <input type="text" id="url-input" placeholder="Enter URL to analyze" />
+          <button id="analyze-btn" class="analyze-btn">
+            <i class="fas fa-search"></i> Analyze
+          </button>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="results-section" style="display: none;">
+          <!-- Result Card -->
+          <div class="result-card">
+            <div class="result-header">
+              <span id="result-icon" class="result-icon"></span>
+              <h2 id="result-title">Result</h2>
+            </div>
+            
+            <div class="confidence-bar">
+              <div class="confidence-text">
+                Confidence: <span id="confidence-value">0%</span>
+              </div>
+              <div class="progress-bar">
+                <div id="confidence-bar-fill" class="progress-bar-fill"></div>
+              </div>
+            </div>
+
+            <div class="why-result">
+              <h3>⚠️ Why this result?</h3>
+              <ul id="result-reasons"></ul>
+            </div>
+
+            <div class="features-grid">
+              <div class="feature">
+                <span class="feature-label">Sentiment:</span>
+                <span id="sentiment-value" class="feature-value">-</span>
+              </div>
+              <div class="feature">
+                <span class="feature-label">Readability:</span>
+                <span id="readability-value" class="feature-value">-</span>
+              </div>
+              <div class="feature">
+                <span class="feature-label">Word Count:</span>
+                <span id="wordcount-value" class="feature-value">-</span>
+              </div>
+              <div class="feature">
+                <span class="feature-label">VADER Sentiment:</span>
+                <span id="vader-value" class="feature-value">-</span>
+              </div>
+            </div>
+
+            <div class="action-buttons">
+              <button id="expand-btn" class="expand-btn">
+                <i class="fas fa-info-circle"></i> Expand Explanation
+              </button>
+              <div class="feedback-buttons">
+                <button id="thumbs-up" class="feedback-btn">
+                  <i class="fas fa-thumbs-up"></i>
+                </button>
+                <button id="thumbs-down" class="feedback-btn">
+                  <i class="fas fa-thumbs-down"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Default Message -->
+        <div id="default-message" class="default-message">
+          <p>Enter a URL to analyze if it contains possible misleading information using machine learning.</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <a href="https://github.com/Felipetoledo4815/fake_news_detector_chrome_extension" target="_blank">
+            <i class="fab fa-github"></i> View on GitHub
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div id="feedback-modal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Provide Feedback</h3>
+        <textarea id="feedback-text" placeholder="Tell us more about your experience..."></textarea>
+        <button id="submit-feedback" class="submit-btn">Submit Feedback</button>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="popup.js"></script>
+  </body>
+</html>
+

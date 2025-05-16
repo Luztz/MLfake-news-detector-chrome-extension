@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detector - Model Information</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --danger-color: #f44336;
+            --success-color: #4CAF50;
+            --warning-color: #ff9800;
+            --text-color: #333;
+            --bg-color: #f5f5f5;
+            --card-bg: #fff;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+        }
+
+        .navbar {
+            background-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 1000px;
+            padding: 2rem 1rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+            border: none;
+        }
+
+        .card-header {
+            background: none;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            padding: 1.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .example-card {
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f8f9fa;
+        }
+
+        .example-card.fake {
+            border-left-color: var(--danger-color);
+        }
+
+        .example-card.real {
+            border-left-color: var(--success-color);
+        }
+
+        .footer {
+            background: var(--card-bg);
+            padding: 2rem 0;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .github-link {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .github-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-shield-alt me-2"></i>
+                Fake News Detector
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Model Overview -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">Model Overview</h2>
+            </div>
+            <div class="card-body">
+                <p>Our Fake News Detector uses a Random Forest Classifier trained on a diverse dataset of news articles. The model analyzes various linguistic and structural features to determine the likelihood of an article containing misleading information.</p>
+                
+                <h4 class="mt-4">Key Features Used:</h4>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="feature-card">
+                            <i class="fas fa-comment-alt feature-icon"></i>
+                            <h5>Sentiment Analysis</h5>
+                            <p>Analyzes the overall emotional tone of the article using TextBlob's sentiment analysis.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="feature-card">
+                            <i class="fas fa-book-reader feature-icon"></i>
+                            <h5>Readability Score</h5>
+                            <p>Measures how easy or difficult the text is to read using the Flesch Reading Ease score.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="feature-card">
+                            <i class="fas fa-calculator feature-icon"></i>
+                            <h5>Word Count</h5>
+                            <p>Analyzes the length of the article to identify potential information density issues.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="feature-card">
+                            <i class="fas fa-chart-line feature-icon"></i>
+                            <h5>VADER Sentiment</h5>
+                            <p>Uses VADER (Valence Aware Dictionary and sEntiment Reasoner) for more nuanced sentiment analysis.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Why These Features -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">Why These Features?</h2>
+            </div>
+            <div class="card-body">
+                <p>Our feature selection is based on extensive research in fake news detection and natural language processing. Here's why each feature is important:</p>
+                
+                <ul class="list-unstyled">
+                    <li class="mb-3">
+                        <strong>Sentiment Analysis:</strong>
+                        <p>Fake news often uses emotionally charged language to manipulate readers. By analyzing sentiment, we can identify potential bias and emotional manipulation.</p>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Readability Score:</strong>
+                        <p>Misleading articles sometimes use complex language to obscure facts or confuse readers. The readability score helps identify such patterns.</p>
+                    </li>
+                    <li class="mb-3">
+                        <strong>Word Count:</strong>
+                        <p>Article length can indicate the depth of coverage. Extremely short or long articles might be red flags for potential misinformation.</p>
+                    </li>
+                    <li class="mb-3">
+                        <strong>VADER Sentiment:</strong>
+                        <p>VADER is specifically attuned to social media and web content, making it particularly effective for analyzing modern news articles.</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Example Results -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">Example Results</h2>
+            </div>
+            <div class="card-body">
+                <div class="example-card fake">
+                    <h5><i class="fas fa-exclamation-triangle text-danger me-2"></i>Likely Fake News</h5>
+                    <p>Confidence: 85%</p>
+                    <p>Features:</p>
+                    <ul>
+                        <li>Negative sentiment (-0.65)</li>
+                        <li>Low readability score (15.2)</li>
+                        <li>High word count (2500+)</li>
+                        <li>Extreme VADER sentiment (-0.8)</li>
+                    </ul>
+                </div>
+
+                <div class="example-card real">
+                    <h5><i class="fas fa-check-circle text-success me-2"></i>Likely Real News</h5>
+                    <p>Confidence: 92%</p>
+                    <p>Features:</p>
+                    <ul>
+                        <li>Neutral sentiment (0.05)</li>
+                        <li>Good readability score (65.8)</li>
+                        <li>Moderate word count (800)</li>
+                        <li>Balanced VADER sentiment (0.1)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Limitations and Future Work -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="mb-0">Limitations and Future Work</h2>
+            </div>
+            <div class="card-body">
+                <h4>Current Limitations:</h4>
+                <ul>
+                    <li>The model may not catch sophisticated fake news that mimics legitimate news writing styles</li>
+                    <li>Performance may vary with different languages and cultural contexts</li>
+                    <li>Satire and opinion pieces might be incorrectly flagged</li>
+                </ul>
+
+                <h4 class="mt-4">Future Improvements:</h4>
+                <ul>
+                    <li>Integration of fact-checking APIs</li>
+                    <li>Addition of image analysis capabilities</li>
+                    <li>Support for multiple languages</li>
+                    <li>Improved handling of satire and opinion content</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container text-center">
+            <p>Fake News Detector Chrome Extension</p>
+            <a href="https://github.com/Felipetoledo4815/fake_news_detector_chrome_extension" class="github-link" target="_blank">
+                <i class="fab fa-github"></i> View on GitHub
+            </a>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
