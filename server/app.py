@@ -50,15 +50,31 @@ init_db()
 model = None
 
 def load_model():
-    """Load the trained model if it exists."""
+    """Load the trained model or download it if not present."""
     global model
     try:
-        if os.path.exists(Config.MODEL_PATH):
-            model = joblib.load(Config.MODEL_PATH)
-            print("Model loaded successfully!")
-            return True
-        print("Model file not found at:", Config.MODEL_PATH)
-        return False
+        model_path = Config.MODEL_PATH
+        model_url = "https://drive.google.com/uc?export=download&id=1b1BCx3rFpC3OFZ69uuk2o-Ubdq8VMFDr"
+
+        # Check if model exists
+        if not os.path.exists(model_path):
+            print(f"Model not found at {model_path}. Downloading from Google Drive...")
+            os.makedirs(os.path.dirname(model_path), exist_ok=True)
+
+            # Download the model
+            response = requests.get(model_url)
+            if response.status_code == 200:
+                with open(model_path, "wb") as f:
+                    f.write(response.content)
+                print("Model downloaded successfully.")
+            else:
+                print("Failed to download model:", response.status_code)
+                return False
+
+        model = joblib.load(model_path)
+        print("Model loaded successfully!")
+        return True
+
     except Exception as e:
         print(f"Error loading model: {str(e)}")
         return False
