@@ -9,5 +9,6 @@ nltk==3.8.1
 vaderSentiment==3.3.2
 gunicorn
 newspaper3k
-lxml[html_clean]
+lxml
+lxml_html_clean
 shap
