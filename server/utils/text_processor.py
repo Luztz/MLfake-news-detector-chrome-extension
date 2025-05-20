@@ -29,27 +29,36 @@ def clean_text(text: str) -> str:
     
     return text
 
-def extract_features(text: str) -> List[str]:
+def extract_features(text: str) -> dict:
     """
     Extract relevant features from text for classification.
-    
-    Args:
-        text (str): Cleaned text content
-        
-    Returns:
-        List[str]: List of extracted features
+    Returns a dictionary with keys: sentiment, readability, word_count, vader_sentiment.
     """
-    features = []
-    
-    # Add word-based features
+    # Sentiment
+    sentiment = analyze_sentiment(text)
+
+    # Readability (Flesch Reading Ease)
+    try:
+        import textstat
+        readability = textstat.flesch_reading_ease(text)
+    except ImportError:
+        readability = 50  # Default if textstat not available
+    except Exception:
+        readability = 50
+
+    # Word count
     words = text.split()
-    features.extend(words)
-    
-    # Add bigram features
-    bigrams = [f"{words[i]}_{words[i+1]}" for i in range(len(words)-1)]
-    features.extend(bigrams)
-    
-    return features
+    word_count = len(words)
+
+    # VADER sentiment (placeholder, set to 0)
+    vader_sentiment = 0
+
+    return {
+        'sentiment': sentiment if sentiment is not None else 0,
+        'readability': readability,
+        'word_count': word_count,
+        'vader_sentiment': vader_sentiment
+    }
 
 def truncate_text(text: str, max_words: int = 1000) -> str:
     """

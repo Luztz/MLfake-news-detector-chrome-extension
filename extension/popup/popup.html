@@ -11,6 +11,9 @@
         <div class="header">
           <img src="../images/48.png" alt="Fake News Detector" id="main-logo">
           <h1>Fake News Detector</h1>
+          <button id="mode-toggle" class="mode-toggle" title="Toggle light/dark mode">
+            <i class="fas fa-moon"></i>
+          </button>
         </div>
 
         <!-- Input Section -->
@@ -36,42 +39,42 @@
               </div>
               <div class="progress-bar">
                 <div id="confidence-bar-fill" class="progress-bar-fill"></div>
+                <div class="progress-labels">
+                  <span class="progress-label fake-label">Fake</span>
+                  <span class="progress-label real-label">Real</span>
+                </div>
               </div>
             </div>
 
             <div class="why-result">
-              <h3>⚠️ Why this result?</h3>
+              <h3 id="why-title">⚠️ Why this result?</h3>
               <ul id="result-reasons"></ul>
             </div>
 
             <div class="features-grid">
               <div class="feature">
-                <span class="feature-label">Sentiment:</span>
-                <span id="sentiment-value" class="feature-value">-</span>
-              </div>
-              <div class="feature">
-                <span class="feature-label">Readability:</span>
+                <span class="feature-label">Readability Score:</span>
                 <span id="readability-value" class="feature-value">-</span>
-              </div>
-              <div class="feature">
-                <span class="feature-label">Word Count:</span>
-                <span id="wordcount-value" class="feature-value">-</span>
               </div>
               <div class="feature">
                 <span class="feature-label">VADER Sentiment:</span>
                 <span id="vader-value" class="feature-value">-</span>
               </div>
+              <div class="feature">
+                <span class="feature-label">Lexical Diversity:</span>
+                <span id="lexical-value" class="feature-value">-</span>
+              </div>
             </div>
 
             <div class="action-buttons">
-              <button id="expand-btn" class="expand-btn">
-                <i class="fas fa-info-circle"></i> Expand Explanation
+              <button id="learn-more-btn" class="expand-btn">
+                <i class="fas fa-info-circle"></i> Learn More
               </button>
               <div class="feedback-buttons">
-                <button id="thumbs-up" class="feedback-btn">
+                <button id="thumbs-up" class="feedback-btn" title="Agree">
                   <i class="fas fa-thumbs-up"></i>
                 </button>
-                <button id="thumbs-down" class="feedback-btn">
+                <button id="thumbs-down" class="feedback-btn" title="Disagree">
                   <i class="fas fa-thumbs-down"></i>
                 </button>
               </div>

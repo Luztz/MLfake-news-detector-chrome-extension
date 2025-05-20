@@ -1,3 +1,7 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import joblib
@@ -6,35 +10,31 @@ import numpy as np
 from newspaper import Article
 from sklearn.feature_extraction.text import TfidfVectorizer
 import sqlite3
-import os
 import shap
 from datetime import datetime
-import sys
 from textblob import TextBlob
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import nltk
 import re
+import textstat
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import spacy
 from sklearn.pipeline import Pipeline
-from model import (
-    TextSelector,
-    SentimentSelector,
-    ReadabilitySelector,
-    WordCountSelector,
-    VaderSentimentSelector
-)
+import traceback
 
 # Add the server directory to Python path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Add the model directory to the Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'model'))
 
 # Download required NLTK data
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('wordnet')
+
+# Load spaCy model
+nlp = spacy.load("en_core_web_sm")
+sia = SentimentIntensityAnalyzer()
 
 from server.utils.text_processor import clean_text, extract_features, get_key_phrases
 from server.utils.database import init_db, save_prediction, save_feedback
@@ -49,12 +49,27 @@ init_db()
 # Global variable for model
 model = None
 
+def get_readability(text):
+    try:
+        return textstat.flesch_reading_ease(text)
+    except Exception:
+        return 50
+
+def get_vader_sentiment(text):
+    return sia.polarity_scores(text)['compound']
+
+def get_lexical_diversity(text):
+    words = text.split()
+    if not words:
+        return 0
+    return len(set(words)) / len(words)
+
 def load_model():
     """Load the trained model or download it if not present."""
     global model
     try:
         model_path = Config.MODEL_PATH
-        model_url = "https://drive.google.com/uc?export=download&id=1b1BCx3rFpC3OFZ69uuk2o-Ubdq8VMFDr"
+        model_url = "https://drive.google.com/uc?export=download&id=1Zha6HPQ7CzlHYQV_tAXgyMx5tA0_TCkh"
 
         # Check if model exists
         if not os.path.exists(model_path):
@@ -118,10 +133,9 @@ def predict():
             # Create a DataFrame with the required structure for the pipeline
             input_data = pd.DataFrame({
                 'text': [processed_content],
-                'sentiment': [0],  # Placeholder values
-                'readability': [0],
-                'word_count': [0],
-                'vader_sentiment': [0]
+                'readability': [get_readability(processed_content)],
+                'vader_sentiment': [get_vader_sentiment(processed_content)],
+                'lexical_diversity': [get_lexical_diversity(processed_content)]
             })
             
             # Make prediction
@@ -130,28 +144,28 @@ def predict():
             confidence = max(probabilities)
             
             # Extract features
-            features = extract_features(content)
+            features = {
+                'readability': input_data['readability'].iloc[0],
+                'vader_sentiment': input_data['vader_sentiment'].iloc[0],
+                'lexical_diversity': input_data['lexical_diversity'].iloc[0]
+            }
             
             # Generate reasons for the prediction
             reasons = []
             if prediction == 0:  # Fake news
-                if features['sentiment'] < -0.3:
+                if features['vader_sentiment'] < -0.3:
                     reasons.append("The article has a strongly negative sentiment, which is often used in misleading content.")
                 if features['readability'] < 30:
                     reasons.append("The article is hard to read, which is sometimes used to obscure misleading information.")
-                if features['vader_sentiment'] < -0.5:
-                    reasons.append("The VADER sentiment is negative, indicating a misleading tone.")
-                if features['word_count'] > 2000:
-                    reasons.append("The article is unusually long, which can be a tactic to overwhelm readers with information.")
+                if features['lexical_diversity'] < 0.3:
+                    reasons.append("The article has low lexical diversity, suggesting repetitive or manipulative language.")
             else:  # Real news
-                if -0.1 <= features['sentiment'] <= 0.1:
+                if -0.1 <= features['vader_sentiment'] <= 0.1:
                     reasons.append("The article maintains a neutral tone, typical of factual reporting.")
                 if features['readability'] > 50:
                     reasons.append("The article is easy to read, suggesting clear and straightforward information.")
-                if -0.2 <= features['vader_sentiment'] <= 0.2:
-                    reasons.append("The VADER sentiment is balanced, indicating objective reporting.")
-                if 500 <= features['word_count'] <= 1500:
-                    reasons.append("The article length is appropriate for comprehensive coverage.")
+                if features['lexical_diversity'] > 0.5:
+                    reasons.append("The article shows good lexical diversity, indicating varied and natural language use.")
             
             # Store prediction in database
             prediction_id = save_prediction(
@@ -170,11 +184,15 @@ def predict():
             })
             
         except Exception as e:
+            print("Exception in /predict inner block:")
+            traceback.print_exc()
             return jsonify({
                 'error': f'Error making prediction: {str(e)}'
             }), 500
     
     except Exception as e:
+        print("Exception in /predict outer block:")
+        traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
 @app.route('/feedback', methods=['POST'])

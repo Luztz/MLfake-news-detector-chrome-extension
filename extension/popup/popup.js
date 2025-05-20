@@ -5,7 +5,7 @@
 // Ensure backBtn is always defined in the correct scope
 
 // Constants
-const API_URL = 'https://fake-news-api.onrender.com';
+const API_URL = 'http://127.0.0.1:5000';
 const DOM_ELEMENTS = {
     urlInput: document.getElementById('url-input'),
     analyzeBtn: document.getElementById('analyze-btn'),
@@ -23,10 +23,9 @@ const DOM_ELEMENTS = {
     confidenceValue: document.getElementById('confidence-value'),
     confidenceBarFill: document.getElementById('confidence-bar-fill'),
     reasonsList: document.getElementById('result-reasons'),
-    sentimentValue: document.getElementById('sentiment-value'),
     readabilityValue: document.getElementById('readability-value'),
-    wordcountValue: document.getElementById('wordcount-value'),
-    vaderValue: document.getElementById('vader-value')
+    vaderValue: document.getElementById('vader-value'),
+    lexicalValue: document.getElementById('lexical-value')
 };
 
 // State management
@@ -103,26 +102,57 @@ const submitFeedback = async (url, feedback, comment) => {
 
 // UI update functions
 const updateResultDisplay = (data) => {
-    // Update result icon and title
     const isFake = data.prediction === 'fake';
-    DOM_ELEMENTS.resultIcon.className = `result-icon ${isFake ? 'fake' : 'real'} fas fa-${isFake ? 'exclamation-triangle' : 'check-circle'}`;
-    DOM_ELEMENTS.resultTitle.textContent = isFake ? '🚫 Likely Fake News' : '✅ Likely Real News';
-
-    // Update confidence
     const confidence = Math.round(data.confidence * 100);
+    const level = getResultLevel(data.confidence, isFake);
+    DOM_ELEMENTS.resultIcon.className = `result-icon ${isFake ? 'fake' : 'real'} fas ${level.icon}`;
+    DOM_ELEMENTS.resultTitle.textContent = level.text;
     DOM_ELEMENTS.confidenceValue.textContent = `${confidence}%`;
     DOM_ELEMENTS.confidenceBarFill.style.width = `${confidence}%`;
-
+    
+    // Update features display
+    DOM_ELEMENTS.readabilityValue.textContent = formatReadabilityScore(data.features.readability);
+    DOM_ELEMENTS.vaderValue.textContent = formatVaderSentiment(data.features.vader_sentiment);
+    DOM_ELEMENTS.lexicalValue.textContent = formatLexicalDiversity(data.features.lexical_diversity);
+    
     // Update reasons
-    DOM_ELEMENTS.reasonsList.innerHTML = data.reasons
-        .map(reason => `<li>${sanitizeText(reason)}</li>`)
-        .join('');
+    DOM_ELEMENTS.reasonsList.innerHTML = data.reasons.map(reason => `<li>${sanitizeText(reason)}</li>`).join('');
+};
 
-    // Update features
-    DOM_ELEMENTS.sentimentValue.textContent = data.features.sentiment.toFixed(2);
-    DOM_ELEMENTS.readabilityValue.textContent = data.features.readability.toFixed(2);
-    DOM_ELEMENTS.wordcountValue.textContent = data.features.word_count;
-    DOM_ELEMENTS.vaderValue.textContent = data.features.vader_sentiment.toFixed(2);
+// Helper functions for formatting feature values
+const formatReadabilityScore = (score) => {
+    if (score === undefined) return '-';
+    const rounded = Math.round(score);
+    return `${rounded} (${getReadabilityLevel(rounded)})`;
+};
+
+const formatVaderSentiment = (score) => {
+    if (score === undefined) return '-';
+    const rounded = score.toFixed(2);
+    return `${rounded} (${getSentimentLevel(score)})`;
+};
+
+const formatLexicalDiversity = (score) => {
+    if (score === undefined) return '-';
+    return (score * 100).toFixed(1) + '%';
+};
+
+const getReadabilityLevel = (score) => {
+    if (score >= 90) return 'Very Easy';
+    if (score >= 80) return 'Easy';
+    if (score >= 70) return 'Fairly Easy';
+    if (score >= 60) return 'Standard';
+    if (score >= 50) return 'Fairly Difficult';
+    if (score >= 30) return 'Difficult';
+    return 'Very Difficult';
+};
+
+const getSentimentLevel = (score) => {
+    if (score >= 0.5) return 'Very Positive';
+    if (score >= 0.1) return 'Positive';
+    if (score > -0.1) return 'Neutral';
+    if (score > -0.5) return 'Negative';
+    return 'Very Negative';
 };
 
 // Event handlers
@@ -218,7 +248,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Submit feedback
     DOM_ELEMENTS.submitFeedback.addEventListener('click', handleFeedback);
+
+    // Learn More button
+    const learnMoreBtn = document.getElementById('learn-more-btn');
+    if (learnMoreBtn) {
+        learnMoreBtn.addEventListener('click', () => {
+            window.open('https://your-learn-more-page.com', '_blank');
+        });
+    }
 });
 
 // When back is pressed, remove the back button
 backBtn && backBtn.remove();
+
+// Add light/dark mode toggle logic
+const modeToggle = document.getElementById('mode-toggle');
+const body = document.body;
+
+function setMode(mode) {
+    if (mode === 'dark') {
+        body.classList.add('dark-mode');
+        modeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    } else {
+        body.classList.remove('dark-mode');
+        modeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+    }
+    localStorage.setItem('theme', mode);
+}
+
+modeToggle.addEventListener('click', () => {
+    const isDark = body.classList.contains('dark-mode');
+    setMode(isDark ? 'light' : 'dark');
+});
+
+// On load, set theme from localStorage
+const savedTheme = localStorage.getItem('theme') || 'light';
+setMode(savedTheme);
+
+// Map confidence to 4-level result header
+function getResultLevel(confidence, isFake) {
+    // confidence: 0-1, isFake: boolean
+    const percent = Math.round(confidence * 100);
+    if (isFake) {
+        if (percent < 25) return {icon: 'fa-skull-crossbones', text: '🚫 Very Likely Fake News', color: 'danger'};
+        if (percent < 50) return {icon: 'fa-exclamation-triangle', text: '⚠️ Likely Fake News', color: 'warning'};
+        return {icon: 'fa-question-circle', text: '⚠️ Uncertain', color: 'warning'};
+    } else {
+        if (percent < 75) return {icon: 'fa-info-circle', text: '⚠️ Likely Real News', color: 'info'};
+        return {icon: 'fa-check-circle', text: '✅ Very Likely Real News', color: 'success'};
+    }
+}
+
+// Improved explanations based on features
+function generateExplanations(prediction, features) {
+    const reasons = [];
+    if (prediction === 'fake') {
+        if (features.readability < 30) reasons.push('The article is hard to read, which is sometimes used to obscure misleading information.');
+        if (features.vader_sentiment < -0.5) reasons.push('The VADER sentiment is strongly negative, indicating a misleading or emotional tone.');
+        if (features.sentiment < -0.3) reasons.push('The overall sentiment is negative, which can be a sign of bias or manipulation.');
+        if (features.word_count > 2000) reasons.push('The article is unusually long, which can be a tactic to overwhelm readers.');
+        if (features.lexical_diversity < 0.3) reasons.push('Low lexical diversity may indicate repetitive or low-quality content.');
+        if (reasons.length === 0) reasons.push('The model detected patterns commonly found in misleading articles.');
+    } else {
+        if (features.readability > 50) reasons.push('The article is easy to read, suggesting clear and straightforward information.');
+        if (features.vader_sentiment > 0.2) reasons.push('The VADER sentiment is positive, indicating a balanced or neutral tone.');
+        if (features.sentiment > 0.1) reasons.push('The overall sentiment is positive, typical of factual reporting.');
+        if (features.word_count >= 500 && features.word_count <= 1500) reasons.push('The article length is appropriate for comprehensive coverage.');
+        if (features.lexical_diversity > 0.5) reasons.push('High lexical diversity suggests a well-written and informative article.');
+        if (reasons.length === 0) reasons.push('The model detected patterns commonly found in factual articles.');
+    }
+    return reasons;
+}
