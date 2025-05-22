@@ -6,6 +6,7 @@
     <title>Fake News Detector - Model Information</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="../images/128.png" type="image/png">
     <style>
         :root {
             --primary-color: #2196F3;
@@ -15,6 +16,7 @@
             --text-color: #333;
             --bg-color: #f5f5f5;
             --card-bg: #fff;
+            --border-color: rgba(0,0,0,0.1);
         }
 
         body {
@@ -22,6 +24,14 @@
             color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-theme {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --border-color: rgba(255,255,255,0.1);
         }
 
         .navbar {
@@ -32,6 +42,11 @@
         .navbar-brand {
             color: white !important;
             font-weight: 600;
+        }
+        
+        .navbar-logo {
+            height: 30px;
+            margin-right: 10px;
         }
 
         .container {
@@ -45,11 +60,12 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             margin-bottom: 2rem;
             border: none;
+            transition: background-color 0.3s ease;
         }
 
         .card-header {
             background: none;
-            border-bottom: 1px solid rgba(0,0,0,0.1);
+            border-bottom: 1px solid var(--border-color);
             padding: 1.5rem;
         }
 
@@ -58,10 +74,11 @@
         }
 
         .feature-card {
-            background: #f8f9fa;
+            background: var(--bg-color);
             border-radius: 8px;
             padding: 1rem;
             margin-bottom: 1rem;
+            transition: background-color 0.3s ease;
         }
 
         .feature-icon {
@@ -74,7 +91,8 @@
             border-left: 4px solid var(--primary-color);
             padding: 1rem;
             margin-bottom: 1rem;
-            background: #f8f9fa;
+            background: var(--bg-color);
+            transition: background-color 0.3s ease;
         }
 
         .example-card.fake {
@@ -89,16 +107,174 @@
             background: var(--card-bg);
             padding: 2rem 0;
             margin-top: 3rem;
-            border-top: 1px solid rgba(0,0,0,0.1);
+            border-top: 1px solid var(--border-color);
+            transition: background-color 0.3s ease;
         }
-
-        .github-link {
-            color: var(--primary-color);
-            text-decoration: none;
+        
+        .model-img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
         }
-
-        .github-link:hover {
-            text-decoration: underline;
+        
+        .feature-scale {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .scale-bar {
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            position: relative;
+            margin: 4px 0 12px 0;
+        }
+        
+        .details-box {
+            background: var(--bg-color);
+            border-left: 3px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 4px 4px 0;
+            transition: background-color 0.3s ease;
+        }
+        
+        .feature-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1rem 0;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .feature-table th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 500;
+            text-align: left;
+            padding: 12px 15px;
+        }
+        
+        .feature-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+        }
+        
+        .feature-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .range-label {
+            font-weight: 600;
+            display: inline-block;
+            min-width: 100px;
+        }
+        
+        .interpretation {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-left: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .interpretation.easy {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .interpretation.standard {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .interpretation.difficult {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+        
+        .interpretation.very-difficult {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .interpretation.neutral {
+            background-color: #e8eaf6;
+            color: #3949ab;
+        }
+        
+        .interpretation.negative {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .interpretation.positive {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .interpretation.low {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .interpretation.medium {
+            background-color: #e3f2fd;
+            color: #1565c0;
+        }
+        
+        .interpretation.high {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        /* Dark theme adjustments */
+        body.dark-theme .interpretation.easy {
+            background-color: rgba(46, 125, 50, 0.2);
+        }
+        
+        body.dark-theme .interpretation.standard {
+            background-color: rgba(21, 101, 192, 0.2);
+        }
+        
+        body.dark-theme .interpretation.difficult {
+            background-color: rgba(255, 143, 0, 0.2);
+        }
+        
+        body.dark-theme .interpretation.very-difficult {
+            background-color: rgba(198, 40, 40, 0.2);
+        }
+        
+        body.dark-theme .interpretation.neutral {
+            background-color: rgba(57, 73, 171, 0.2);
+        }
+        
+        body.dark-theme .interpretation.negative {
+            background-color: rgba(198, 40, 40, 0.2);
+        }
+        
+        body.dark-theme .interpretation.positive {
+            background-color: rgba(46, 125, 50, 0.2);
+        }
+        
+        body.dark-theme .interpretation.low {
+            background-color: rgba(198, 40, 40, 0.2);
+        }
+        
+        body.dark-theme .interpretation.medium {
+            background-color: rgba(21, 101, 192, 0.2);
+        }
+        
+        body.dark-theme .interpretation.high {
+            background-color: rgba(46, 125, 50, 0.2);
         }
     </style>
 </head>
@@ -107,7 +283,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="#">
-                <i class="fas fa-shield-alt me-2"></i>
+                <img src="{{ url_for('extension_images', filename='128.png') }}" alt="Fake News Detector Logo" class="navbar-logo">
                 Fake News Detector
             </a>
         </div>
@@ -115,6 +291,117 @@
 
     <!-- Main Content -->
     <div class="container">
+        {% if analysis %}
+        <!-- Current Analysis Results -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="mb-0">Your Current Analysis</h2>
+            </div>
+            <div class="card-body">
+                <div class="example-card {% if 'Fake' in analysis.prediction %}fake{% else %}real{% endif %}">
+                    <h4>
+                        {% if 'Fake' in analysis.prediction %}
+                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                        {% else %}
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        {% endif %}
+                        {{ analysis.prediction }}
+                    </h4>
+                    
+                    <p><strong>Confidence:</strong> 
+                        {% if 'Fake' in analysis.prediction %}
+                            {{ (100 - (analysis.confidence|float))|round(1) }}%
+                        {% else %}
+                            {{ (analysis.confidence|float)|round(1) }}%
+                        {% endif %}
+                    </p>
+                    
+                    {% if analysis.url %}
+                    <p><strong>Analyzed URL:</strong> <small>{{ analysis.url }}</small></p>
+                    {% endif %}
+                    
+                    <h5 class="mt-4">Feature Analysis:</h5>
+                    
+                <div class="row mt-3">
+                        <div class="col-md-4">
+                        <div class="feature-card">
+                                <h6><i class="fas fa-book-reader me-2"></i>Readability Score</h6>
+                                <h3>{{ analysis.readability.value }}</h3>
+                                <p>{{ analysis.readability.interpretation }}</p>
+                                <div class="details-box mt-2">
+                                    {% if analysis.readability.value|float < 30 %}
+                                    <p><i class="fas fa-exclamation-triangle text-warning me-1"></i> Low readability may indicate intentionally complex or confusing language.</p>
+                                    {% elif analysis.readability.value|float > 70 %}
+                                    <p><i class="fas fa-check-circle text-success me-1"></i> Good readability is typical of professional journalism.</p>
+                                    {% else %}
+                                    <p><i class="fas fa-info-circle text-primary me-1"></i> Medium readability is common in standard news articles.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                        <div class="feature-card">
+                                <h6><i class="fas fa-chart-line me-2"></i>VADER Sentiment</h6>
+                                <h3>{{ analysis.sentiment.value }}</h3>
+                                <p>{{ analysis.sentiment.interpretation }}</p>
+                                <div class="details-box mt-2">
+                                    {% if analysis.sentiment.value|float < -0.5 or analysis.sentiment.value|float > 0.5 %}
+                                    <p><i class="fas fa-exclamation-triangle text-warning me-1"></i> Extreme sentiment may indicate manipulation or bias.</p>
+                                    {% else %}
+                                    <p><i class="fas fa-check-circle text-success me-1"></i> Balanced sentiment is typical of objective reporting.</p>
+                                    {% endif %}
+                        </div>
+                    </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                        <div class="feature-card">
+                                <h6><i class="fas fa-language me-2"></i>Lexical Diversity</h6>
+                                <h3>{{ analysis.diversity.value }}</h3>
+                                <p>{{ analysis.diversity.interpretation }}</p>
+                                <div class="details-box mt-2">
+                                    {% if analysis.diversity.value|float < 0.4 %}
+                                    <p><i class="fas fa-exclamation-triangle text-warning me-1"></i> Low diversity may indicate repetitive or templated content.</p>
+                                    {% elif analysis.diversity.value|float > 0.6 %}
+                                    <p><i class="fas fa-check-circle text-success me-1"></i> High diversity suggests well-written, varied content.</p>
+                                    {% else %}
+                                    <p><i class="fas fa-info-circle text-primary me-1"></i> Medium diversity is typical of standard news articles.</p>
+                                    {% endif %}
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h5>Decision Path Analysis:</h5>
+                        <p>Based on these features, our Random Forest model made the following decisions:</p>
+                        
+                        <ul>
+                            {% if analysis.readability.value|float < 40 %}
+                            <li>Low readability score ({{ analysis.readability.value }}) → Suggests potential fake news</li>
+                            {% else %}
+                            <li>Acceptable readability score ({{ analysis.readability.value }}) → Suggests legitimate content</li>
+                            {% endif %}
+                            
+                            {% if analysis.sentiment.value|float < -0.8 or analysis.sentiment.value|float > 0.8 %}
+                            <li>Extreme sentiment value ({{ analysis.sentiment.value }}) → Suggests potential manipulation</li>
+                            {% else %}
+                            <li>Balanced sentiment value ({{ analysis.sentiment.value }}) → Suggests objective reporting</li>
+                            {% endif %}
+                            
+                            {% if analysis.diversity.value|float < 0.4 %}
+                            <li>Low lexical diversity ({{ analysis.diversity.value }}) → Suggests repetitive content</li>
+                            {% else %}
+                            <li>Good lexical diversity ({{ analysis.diversity.value }}) → Suggests quality writing</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Model Overview -->
         <div class="card">
             <div class="card-header">
@@ -123,66 +410,198 @@
             <div class="card-body">
                 <p>Our Fake News Detector uses a Random Forest Classifier trained on a diverse dataset of news articles. The model analyzes various linguistic and structural features to determine the likelihood of an article containing misleading information.</p>
                 
+                <!-- How Random Forest Works -->
+                <h4 class="mt-4">How Our Random Forest Model Works</h4>
+                <p>Our fake news detection system uses a <strong>Random Forest</strong> machine learning model. Here's how it works:</p>
+                
+                <img src="{{ url_for('extension_images', filename='RandomForest.jpg') }}" alt="Random Forest Model Visualization" class="model-img">
+                
+                <div class="details-box">
+                    <h5>Random Forest Explained:</h5>
+                    <ol>
+                        <li><strong>Multiple Decision Trees:</strong> Random Forest builds many decision trees that each analyze features like readability, sentiment, and lexical diversity.</li>
+                        <li><strong>Majority Voting:</strong> Each tree votes on whether an article is real or fake news.</li>
+                        <li><strong>Confidence Score:</strong> For real news, the confidence shows how confident the model is about it being real. For fake news, the confidence shows how confident the model is about it being fake.</li>
+                        <li><strong>Feature Importance:</strong> Our model found readability score to be the most important feature, followed by sentiment and lexical diversity.</li>
+                    </ol>
+                </div>
+                
+                <p>This approach provides better accuracy and stability than single decision trees or simpler models.</p>
+                
                 <h4 class="mt-4">Key Features Used:</h4>
                 <div class="row mt-3">
                     <div class="col-md-6">
                         <div class="feature-card">
-                            <i class="fas fa-comment-alt feature-icon"></i>
-                            <h5>Sentiment Analysis</h5>
-                            <p>Analyzes the overall emotional tone of the article using TextBlob's sentiment analysis.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="feature-card">
                             <i class="fas fa-book-reader feature-icon"></i>
                             <h5>Readability Score</h5>
-                            <p>Measures how easy or difficult the text is to read using the Flesch Reading Ease score.</p>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="feature-card">
-                            <i class="fas fa-calculator feature-icon"></i>
-                            <h5>Word Count</h5>
-                            <p>Analyzes the length of the article to identify potential information density issues.</p>
+                            <p>Measures how easy or difficult the text is to read using the Flesch Reading Ease score (0-100).</p>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="feature-card">
                             <i class="fas fa-chart-line feature-icon"></i>
                             <h5>VADER Sentiment</h5>
-                            <p>Uses VADER (Valence Aware Dictionary and sEntiment Reasoner) for more nuanced sentiment analysis.</p>
+                            <p>Analyzes emotional tone using VADER (Valence Aware Dictionary and sEntiment Reasoner) with scores from -1 to +1.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="feature-card">
+                            <i class="fas fa-language feature-icon"></i>
+                            <h5>Lexical Diversity</h5>
+                            <p>Measures vocabulary richness by calculating the ratio of unique words to total words (0-1).</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Why These Features -->
+        <!-- Feature Details -->
         <div class="card">
             <div class="card-header">
-                <h2 class="mb-0">Why These Features?</h2>
+                <h2 class="mb-0">Feature Details</h2>
             </div>
             <div class="card-body">
-                <p>Our feature selection is based on extensive research in fake news detection and natural language processing. Here's why each feature is important:</p>
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5 class="mb-3">Readability Score (Flesch Reading Ease)</h5>
+                        <p>Measures how easy it is to read the article text. Higher scores indicate easier reading, lower scores indicate more complex text.</p>
+                        
+                        <table class="feature-table">
+                            <thead>
+                                <tr>
+                                    <th>Range</th>
+                                    <th>Interpretation</th>
+                                    <th>Description</th>
+                                    <th>Why It Matters</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>90-100</td>
+                                    <td><span class="interpretation easy">Very easy</span></td>
+                                    <td>5th grade level</td>
+                                    <td>Very high readability typical of children's content or simplistic writing</td>
+                                </tr>
+                                <tr>
+                                    <td>60-70</td>
+                                    <td><span class="interpretation standard">Standard</span></td>
+                                    <td>8-9th grade level</td>
+                                    <td>Balanced readability common in mainstream publications</td>
+                                </tr>
+                                <tr>
+                                    <td>30-50</td>
+                                    <td><span class="interpretation difficult">Difficult</span></td>
+                                    <td>College level</td>
+                                    <td>More complex content found in academic or specialized publications</td>
+                                </tr>
+                                <tr>
+                                    <td>&lt;30</td>
+                                    <td><span class="interpretation very-difficult">Very difficult</span></td>
+                                    <td>Academic or obfuscated</td>
+                                    <td>Extremely complex language can be a sign of intentional obfuscation</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <p class="mt-3"><strong>Model Impact:</strong> Articles with very low readability scores (&lt;40) tend to follow the fake news path in our model, as fake news often uses emotionally charged, exaggerated, or complex phrasing to manipulate or confuse readers.</p>
+                    </div>
+                </div>
                 
-                <ul class="list-unstyled">
-                    <li class="mb-3">
-                        <strong>Sentiment Analysis:</strong>
-                        <p>Fake news often uses emotionally charged language to manipulate readers. By analyzing sentiment, we can identify potential bias and emotional manipulation.</p>
-                    </li>
-                    <li class="mb-3">
-                        <strong>Readability Score:</strong>
-                        <p>Misleading articles sometimes use complex language to obscure facts or confuse readers. The readability score helps identify such patterns.</p>
-                    </li>
-                    <li class="mb-3">
-                        <strong>Word Count:</strong>
-                        <p>Article length can indicate the depth of coverage. Extremely short or long articles might be red flags for potential misinformation.</p>
-                    </li>
-                    <li class="mb-3">
-                        <strong>VADER Sentiment:</strong>
-                        <p>VADER is specifically attuned to social media and web content, making it particularly effective for analyzing modern news articles.</p>
-                    </li>
-                </ul>
+                <hr class="my-4">
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5 class="mb-3">VADER Sentiment</h5>
+                        <p>Analyzes the emotional tone of the article using a specialized sentiment analysis tool calibrated for social media content.</p>
+                        
+                        <table class="feature-table">
+                            <thead>
+                                <tr>
+                                    <th>Range</th>
+                                    <th>Interpretation</th>
+                                    <th>Description</th>
+                                    <th>Examples</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>-1 to -0.5</td>
+                                    <td><span class="interpretation negative">Extremely negative</span></td>
+                                    <td>Strong negative emotions</td>
+                                    <td>Words like "terrible", "horrific", "disaster", "outrageous"</td>
+                                </tr>
+                                <tr>
+                                    <td>-0.5 to -0.05</td>
+                                    <td><span class="interpretation negative">Moderately negative</span></td>
+                                    <td>Mild negative tone</td>
+                                    <td>Words like "problem", "concerning", "difficult", "unfortunate"</td>
+                                </tr>
+                                <tr>
+                                    <td>-0.05 to +0.05</td>
+                                    <td><span class="interpretation neutral">Neutral</span></td>
+                                    <td>Balanced tone</td>
+                                    <td>Factual reporting, minimal emotional language</td>
+                                </tr>
+                                <tr>
+                                    <td>+0.05 to +0.5</td>
+                                    <td><span class="interpretation positive">Moderately positive</span></td>
+                                    <td>Mild positive tone</td>
+                                    <td>Words like "good", "beneficial", "promising", "successful"</td>
+                                </tr>
+                                <tr>
+                                    <td>+0.5 to +1</td>
+                                    <td><span class="interpretation positive">Extremely positive</span></td>
+                                    <td>Strong positive emotions</td>
+                                    <td>Words like "excellent", "amazing", "breakthrough", "revolutionary"</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <p class="mt-3"><strong>Model Impact:</strong> Fake news typically uses extremely positive or negative language to sway opinion, while legitimate journalism tends toward more neutral, balanced reporting. Very extreme sentiment scores (above 0.8 or below -0.8) often indicate manipulation.</p>
+                    </div>
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="row">
+                    <div class="col-md-12">
+                        <h5 class="mb-3">Lexical Diversity</h5>
+                        <p>Measures the ratio of unique words to total words in the text, indicating vocabulary richness and writing quality.</p>
+                        
+                        <table class="feature-table">
+                            <thead>
+                                <tr>
+                                    <th>Range</th>
+                                    <th>Interpretation</th>
+                                    <th>Description</th>
+                                    <th>Content Quality</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>&lt;0.4</td>
+                                    <td><span class="interpretation low">Low diversity</span></td>
+                                    <td>Repetitive or templated content</td>
+                                    <td>Same phrases repeated, limited vocabulary, may indicate template-based or auto-generated content</td>
+                                </tr>
+                                <tr>
+                                    <td>0.4-0.6</td>
+                                    <td><span class="interpretation medium">Medium diversity</span></td>
+                                    <td>Standard writing</td>
+                                    <td>Normal variation of vocabulary, typical of standard news articles</td>
+                                </tr>
+                                <tr>
+                                    <td>&gt;0.6</td>
+                                    <td><span class="interpretation high">High diversity</span></td>
+                                    <td>Well-written, varied content</td>
+                                    <td>Rich vocabulary, careful word choice, fewer repetitions, typical of high-quality journalism</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        
+                        <p class="mt-3"><strong>Model Impact:</strong> Fake articles often repeat phrases and use formulaic language patterns. High-quality journalism typically employs varied vocabulary to cover nuance. Our model often flags articles with lexical diversity below 0.4 as suspicious.</p>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -197,11 +616,11 @@
                     <p>Confidence: 85%</p>
                     <p>Features:</p>
                     <ul>
-                        <li>Negative sentiment (-0.65)</li>
-                        <li>Low readability score (15.2)</li>
-                        <li>High word count (2500+)</li>
-                        <li>Extreme VADER sentiment (-0.8)</li>
+                        <li>Negative VADER sentiment (-0.92)</li>
+                        <li>Low readability score (26.9)</li>
+                        <li>Low lexical diversity (0.33)</li>
                     </ul>
+                    <p><strong>Explanation:</strong> This article shows extreme negative sentiment, very difficult readability, and repetitive language patterns typical of misleading content.</p>
                 </div>
 
                 <div class="example-card real">
@@ -209,11 +628,11 @@
                     <p>Confidence: 92%</p>
                     <p>Features:</p>
                     <ul>
-                        <li>Neutral sentiment (0.05)</li>
+                        <li>Neutral VADER sentiment (0.05)</li>
                         <li>Good readability score (65.8)</li>
-                        <li>Moderate word count (800)</li>
-                        <li>Balanced VADER sentiment (0.1)</li>
+                        <li>High lexical diversity (0.62)</li>
                     </ul>
+                    <p><strong>Explanation:</strong> This article demonstrates balanced emotional tone, standard readability level appropriate for general audiences, and rich vocabulary typical of professional journalism.</p>
                 </div>
             </div>
         </div>
@@ -224,19 +643,20 @@
                 <h2 class="mb-0">Limitations and Future Work</h2>
             </div>
             <div class="card-body">
-                <h4>Current Limitations:</h4>
+                <h5>Current Limitations:</h5>
                 <ul>
                     <li>The model may not catch sophisticated fake news that mimics legitimate news writing styles</li>
                     <li>Performance may vary with different languages and cultural contexts</li>
                     <li>Satire and opinion pieces might be incorrectly flagged</li>
                 </ul>
 
-                <h4 class="mt-4">Future Improvements:</h4>
+                <h5 class="mt-4">Future Improvements:</h5>
                 <ul>
                     <li>Integration of fact-checking APIs</li>
                     <li>Addition of image analysis capabilities</li>
                     <li>Support for multiple languages</li>
                     <li>Improved handling of satire and opinion content</li>
+                    <li>Incorporation of user feedback to enhance model accuracy over time</li>
                 </ul>
             </div>
         </div>
@@ -246,12 +666,28 @@
     <footer class="footer">
         <div class="container text-center">
             <p>Fake News Detector Chrome Extension</p>
-            <a href="https://github.com/Felipetoledo4815/fake_news_detector_chrome_extension" class="github-link" target="_blank">
-                <i class="fab fa-github"></i> View on GitHub
-            </a>
+            <p>© 2023</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Check for saved theme preference or get from localStorage
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if theme is passed in URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            let theme = urlParams.get('theme');
+            
+            // If no theme in URL, check localStorage
+            if (!theme) {
+                theme = localStorage.getItem('theme');
+            }
+            
+            // Apply theme if found
+            if (theme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        });
+    </script>
 </body>
 </html> 

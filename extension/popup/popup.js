@@ -7,60 +7,82 @@
 // Constants
 const API_URL = 'http://127.0.0.1:5000';
 const DOM_ELEMENTS = {
-    urlInput: document.getElementById('url-input'),
-    analyzeBtn: document.getElementById('analyze-btn'),
-    resultsSection: document.getElementById('results'),
-    defaultMessage: document.getElementById('default-message'),
-    expandBtn: document.getElementById('expand-btn'),
-    thumbsUpBtn: document.getElementById('thumbs-up'),
-    thumbsDownBtn: document.getElementById('thumbs-down'),
-    feedbackModal: document.getElementById('feedback-modal'),
-    closeModal: document.querySelector('.close'),
-    feedbackText: document.getElementById('feedback-text'),
-    submitFeedback: document.getElementById('submit-feedback'),
-    resultIcon: document.getElementById('result-icon'),
-    resultTitle: document.getElementById('result-title'),
-    confidenceValue: document.getElementById('confidence-value'),
-    confidenceBarFill: document.getElementById('confidence-bar-fill'),
-    reasonsList: document.getElementById('result-reasons'),
-    readabilityValue: document.getElementById('readability-value'),
-    vaderValue: document.getElementById('vader-value'),
-    lexicalValue: document.getElementById('lexical-value')
+    urlInput: document.getElementById('urlInput'),
+    analyzeBtn: document.getElementById('analyzeBtn'),
+    resultsSection: document.getElementById('resultsSection'),
+    loadingState: document.getElementById('loadingState'),
+    confidenceLabel: document.getElementById('confidenceLabel'),
+    confidenceIcon: document.getElementById('confidenceIcon'),
+    confidenceText: document.getElementById('confidenceText'),
+    confidencePercent: document.getElementById('confidencePercent'),
+    confidenceBarFill: document.getElementById('confidenceBarFill'),
+    confidenceMarker: document.getElementById('confidenceMarker'),
+    explanationsList: document.getElementById('explanationsList'),
+    readabilityScore: document.getElementById('readabilityScore'),
+    vaderSentiment: document.getElementById('vaderSentiment'),
+    lexicalDiversity: document.getElementById('lexicalDiversity'),
+    learnMoreBtn: document.getElementById('learnMoreBtn'),
+    agreeBtn: document.getElementById('agreeBtn'),
+    disagreeBtn: document.getElementById('disagreeBtn'),
+    feedbackMessage: document.getElementById('feedbackMessage'),
+    currentPredictionId: document.getElementById('currentPredictionId'),
+    themeToggle: document.getElementById('themeToggle'),
+    themeIcon: document.getElementById('themeIcon'),
+    submitFeedback: document.getElementById('submitFeedback')
 };
 
 // State management
 let selectedFeedback = null;
 let isAnalyzing = false;
+let lastAnalysisData = null; // Store the latest analysis data
 
 // Utility functions
 const showError = (message) => {
-    alert(message);
-    console.error(message);
+    if (message) {
+        console.error('Error:', message);
+        alert(message);
+    }
 };
 
 const resetFeedbackState = () => {
     selectedFeedback = null;
-    DOM_ELEMENTS.feedbackText.value = '';
-    DOM_ELEMENTS.thumbsUpBtn.classList.remove('active');
-    DOM_ELEMENTS.thumbsDownBtn.classList.remove('active');
-    DOM_ELEMENTS.feedbackModal.style.display = 'none';
+    if (DOM_ELEMENTS.confidenceText) {
+        DOM_ELEMENTS.confidenceText.textContent = '';
+        DOM_ELEMENTS.confidenceIcon.textContent = '';
+        DOM_ELEMENTS.confidenceLabel.className = '';
+        DOM_ELEMENTS.confidencePercent.textContent = '';
+        DOM_ELEMENTS.confidenceBarFill.style.width = '0%';
+        DOM_ELEMENTS.confidenceMarker.style.left = '0%';
+        DOM_ELEMENTS.explanationsList.innerHTML = '';
+        DOM_ELEMENTS.readabilityScore.textContent = '';
+        DOM_ELEMENTS.vaderSentiment.textContent = '';
+        DOM_ELEMENTS.lexicalDiversity.textContent = '';
+        DOM_ELEMENTS.resultsSection.style.display = 'none';
+        DOM_ELEMENTS.loadingState.style.display = 'none';
+    }
 };
 
 const updateButtonState = (isLoading) => {
+    console.log('updateButtonState called, isLoading:', isLoading);
     isAnalyzing = isLoading;
-    DOM_ELEMENTS.analyzeBtn.disabled = isLoading;
-    DOM_ELEMENTS.analyzeBtn.innerHTML = isLoading 
-        ? '<i class="fas fa-spinner fa-spin"></i> Analyzing...'
-        : '<i class="fas fa-search"></i> Analyze';
+    if (DOM_ELEMENTS.analyzeBtn) {
+        DOM_ELEMENTS.analyzeBtn.disabled = isLoading;
+        DOM_ELEMENTS.loadingState.style.display = isLoading ? 'block' : 'none';
+        DOM_ELEMENTS.analyzeBtn.innerHTML = isLoading 
+            ? '<i class="fas fa-spinner fa-spin"></i> Analyzing...'
+            : '<i class="fas fa-search"></i> Analyze';
+    }
 };
 
 const sanitizeText = (text) => {
-    return text.replace(/[\uFFFD\u2028\u2029\u00A0\u200B\u200C\u200D\uFEFF]/g, '')
+    if (!text) return '';
+    return text.toString().replace(/[\uFFFD\u2028\u2029\u00A0\u200B\u200C\u200D\uFEFF]/g, '')
                .replace(/[\x00-\x1F\x7F-\x9F]/g, '');
 };
 
 // API functions
 const analyzeUrl = async (url) => {
+    console.log('analyzeUrl called with URL:', url);
     try {
         const response = await fetch(`${API_URL}/predict`, {
             method: 'POST',
@@ -78,101 +100,140 @@ const analyzeUrl = async (url) => {
     }
 };
 
-const submitFeedback = async (url, feedback, comment) => {
-    try {
-        const response = await fetch(`${API_URL}/feedback`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                url: sanitizeText(url),
-                feedback,
-                comment: sanitizeText(comment)
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (error) {
-        throw new Error(`Feedback submission failed: ${error.message}`);
-    }
-};
-
 // UI update functions
 const updateResultDisplay = (data) => {
-    const isFake = data.prediction === 'fake';
-    const confidence = Math.round(data.confidence * 100);
-    const level = getResultLevel(data.confidence, isFake);
-    DOM_ELEMENTS.resultIcon.className = `result-icon ${isFake ? 'fake' : 'real'} fas ${level.icon}`;
-    DOM_ELEMENTS.resultTitle.textContent = level.text;
-    DOM_ELEMENTS.confidenceValue.textContent = `${confidence}%`;
-    DOM_ELEMENTS.confidenceBarFill.style.width = `${confidence}%`;
+    console.log('Updating display with data:', data);
+    if (!data || !DOM_ELEMENTS.confidencePercent) return;
     
-    // Update features display
-    DOM_ELEMENTS.readabilityValue.textContent = formatReadabilityScore(data.features.readability);
-    DOM_ELEMENTS.vaderValue.textContent = formatVaderSentiment(data.features.vader_sentiment);
-    DOM_ELEMENTS.lexicalValue.textContent = formatLexicalDiversity(data.features.lexical_diversity);
+    // Store the latest analysis data for Learn More
+    lastAnalysisData = data;
     
-    // Update reasons
-    DOM_ELEMENTS.reasonsList.innerHTML = data.reasons.map(reason => `<li>${sanitizeText(reason)}</li>`).join('');
-};
-
-// Helper functions for formatting feature values
-const formatReadabilityScore = (score) => {
-    if (score === undefined) return '-';
-    const rounded = Math.round(score);
-    return `${rounded} (${getReadabilityLevel(rounded)})`;
-};
-
-const formatVaderSentiment = (score) => {
-    if (score === undefined) return '-';
-    const rounded = score.toFixed(2);
-    return `${rounded} (${getSentimentLevel(score)})`;
-};
-
-const formatLexicalDiversity = (score) => {
-    if (score === undefined) return '-';
-    return (score * 100).toFixed(1) + '%';
-};
-
-const getReadabilityLevel = (score) => {
-    if (score >= 90) return 'Very Easy';
-    if (score >= 80) return 'Easy';
-    if (score >= 70) return 'Fairly Easy';
-    if (score >= 60) return 'Standard';
-    if (score >= 50) return 'Fairly Difficult';
-    if (score >= 30) return 'Difficult';
-    return 'Very Difficult';
-};
-
-const getSentimentLevel = (score) => {
-    if (score >= 0.5) return 'Very Positive';
-    if (score >= 0.1) return 'Positive';
-    if (score > -0.1) return 'Neutral';
-    if (score > -0.5) return 'Negative';
-    return 'Very Negative';
+    try {
+        // Determine if it's fake or real (binary classification)
+        const prediction = data.prediction || 0;
+        const isReal = prediction === 1;
+        
+        // Update confidence display
+        // For Fake News: confidence = 100 - (confidence * 100)
+        // For Real News: confidence = confidence * 100
+        let confidence = 0;
+        if (isReal) {
+            confidence = (data.confidence || 0) * 100; // Real: higher confidence = more real
+        } else {
+            confidence = 100 - ((data.confidence || 0) * 100); // Fake: lower original confidence = more fake
+        }
+        
+        DOM_ELEMENTS.confidencePercent.textContent = confidence.toFixed(1);
+        
+        // Update confidence bar
+        DOM_ELEMENTS.confidenceBarFill.style.width = `${confidence}%`;
+        DOM_ELEMENTS.confidenceMarker.style.left = `${confidence}%`;
+        
+        // Update bar color only for fake news (red)
+        if (isReal) {
+            DOM_ELEMENTS.confidenceBarFill.style.backgroundColor = ''; // No background color for real news
+        } else {
+            DOM_ELEMENTS.confidenceBarFill.style.backgroundColor = '#F44336'; // Red for fake news
+        }
+        
+        // Update classification text and icon based on binary classification
+        if (isReal) {
+            DOM_ELEMENTS.confidenceIcon.textContent = '✅';
+            DOM_ELEMENTS.confidenceText.textContent = 'Likely Real News';
+            DOM_ELEMENTS.confidenceLabel.className = 'confidence-label real';
+        } else {
+            DOM_ELEMENTS.confidenceIcon.textContent = '❌';
+            DOM_ELEMENTS.confidenceText.textContent = 'Likely Fake News';
+            DOM_ELEMENTS.confidenceLabel.className = 'confidence-label fake';
+        }
+        
+        // Update explanations
+        DOM_ELEMENTS.explanationsList.innerHTML = '';
+        if (data.explanations && Array.isArray(data.explanations)) {
+            data.explanations.forEach(explanation => {
+                if (explanation) {
+                    const li = document.createElement('li');
+                    li.textContent = explanation;
+                    DOM_ELEMENTS.explanationsList.appendChild(li);
+                }
+            });
+        }
+        
+        // Update feature values with proper formatting
+        const features = data.features || {};
+        
+        // Format readability score (0-100)
+        const readability = features.readability;
+        if (readability !== undefined && readability !== null) {
+            // Format based on value - even show zero values
+            if (readability === 0) {
+                DOM_ELEMENTS.readabilityScore.textContent = '0';
+            } else {
+                DOM_ELEMENTS.readabilityScore.textContent = readability.toFixed(2);
+            }
+        } else {
+            DOM_ELEMENTS.readabilityScore.textContent = '-';
+        }
+        
+        // Format VADER sentiment (-1 to 1)
+        const sentiment = features.vader_sentiment;
+        if (sentiment !== undefined && sentiment !== null) {
+            // Round to 2 decimal places, but show as whole number if close to -1, 0, or 1
+            const roundedSentiment = Math.abs(sentiment - Math.round(sentiment)) < 0.01 
+                ? Math.round(sentiment).toString()
+                : sentiment.toFixed(2);
+            DOM_ELEMENTS.vaderSentiment.textContent = roundedSentiment;
+        } else {
+            DOM_ELEMENTS.vaderSentiment.textContent = '-';
+        }
+        
+        // Format lexical diversity (0-1)
+        const diversity = features.lexical_diversity;
+        if (diversity !== undefined && diversity !== null) {
+            DOM_ELEMENTS.lexicalDiversity.textContent = diversity.toFixed(2);
+        } else {
+            DOM_ELEMENTS.lexicalDiversity.textContent = '-';
+        }
+        
+        // Store prediction ID if available
+        if (data.prediction_id) {
+            DOM_ELEMENTS.currentPredictionId.value = data.prediction_id;
+        }
+        
+        // Show results section
+        DOM_ELEMENTS.resultsSection.style.display = 'block';
+    } catch (error) {
+        console.error('Error updating result display:', error);
+        showError('Error displaying results');
+    }
 };
 
 // Event handlers
 const handleAnalyze = async () => {
+    console.log('handleAnalyze called');
+    if (!DOM_ELEMENTS.urlInput) return;
+    
     const url = DOM_ELEMENTS.urlInput.value.trim();
+    console.log('URL to analyze:', url);
+    
     if (!url) {
         showError('Please enter a URL to analyze');
         return;
     }
 
-    if (isAnalyzing) return;
+    if (isAnalyzing) {
+        console.log('Already analyzing, returning');
+        return;
+    }
 
     try {
         updateButtonState(true);
         const data = await analyzeUrl(url);
+        console.log('Analysis data received:', data);
         
-        DOM_ELEMENTS.defaultMessage.style.display = 'none';
-        DOM_ELEMENTS.resultsSection.style.display = 'block';
         updateResultDisplay(data);
     } catch (error) {
+        console.error('Error during analysis:', error);
         showError(error.message);
     } finally {
         updateButtonState(false);
@@ -186,7 +247,7 @@ const handleFeedback = async () => {
         await submitFeedback(
             DOM_ELEMENTS.urlInput.value,
             selectedFeedback,
-            DOM_ELEMENTS.feedbackText.value
+            DOM_ELEMENTS.confidenceText.value
         );
         
         alert('Thank you for your feedback!');
@@ -198,92 +259,147 @@ const handleFeedback = async () => {
 
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM Content Loaded');
+    console.log('DOM Elements:', DOM_ELEMENTS);
+    
+    // Theme toggle logic
+    if (DOM_ELEMENTS.themeToggle && DOM_ELEMENTS.themeIcon) {
+        const setTheme = (mode) => {
+            if (mode === 'dark') {
+                document.body.classList.add('dark-theme');
+                DOM_ELEMENTS.themeIcon.textContent = '🌙';
+            } else {
+                document.body.classList.remove('dark-theme');
+                DOM_ELEMENTS.themeIcon.textContent = '☀️';
+            }
+            localStorage.setItem('theme', mode);
+        };
+
+        // Set theme from localStorage or default to light
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        setTheme(savedTheme);
+
+        DOM_ELEMENTS.themeToggle.addEventListener('click', () => {
+            const isDark = document.body.classList.contains('dark-theme');
+            setTheme(isDark ? 'light' : 'dark');
+        });
+    }
+
     // Autofill current tab's URL
-    if (chrome.tabs) {
+    if (chrome && chrome.tabs) {
         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-            if (tabs && tabs[0] && tabs[0].url) {
+            if (tabs && tabs[0] && tabs[0].url && DOM_ELEMENTS.urlInput) {
                 DOM_ELEMENTS.urlInput.value = tabs[0].url;
             }
         });
     }
+
     // Analyze button click
-    DOM_ELEMENTS.analyzeBtn.addEventListener('click', handleAnalyze);
+    if (DOM_ELEMENTS.analyzeBtn) {
+        console.log('Adding click listener to analyzeBtn');
+        DOM_ELEMENTS.analyzeBtn.addEventListener('click', handleAnalyze);
+    }
 
     // URL input enter key
-    DOM_ELEMENTS.urlInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter' && !isAnalyzing) {
-            handleAnalyze();
-        }
-    });
+    if (DOM_ELEMENTS.urlInput) {
+        DOM_ELEMENTS.urlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !isAnalyzing) {
+                handleAnalyze();
+            }
+        });
+    }
 
-    // Expand explanation button
-    DOM_ELEMENTS.expandBtn.addEventListener('click', () => {
-        window.open(`${API_URL}/info`, '_blank');
-    });
+    // Learn More button
+    if (DOM_ELEMENTS.learnMoreBtn) {
+        DOM_ELEMENTS.learnMoreBtn.addEventListener('click', () => {
+            // Prepare detailed analysis data to pass to the info page
+            let detailsUrl = `${API_URL}/info`;
+            
+            // If we have analysis data, add it as query parameters
+            if (lastAnalysisData) {
+                const params = new URLSearchParams();
+                const confidence = (lastAnalysisData.confidence || 0) * 100;
+                
+                // Add basic analysis results
+                params.append('confidence', confidence.toFixed(1));
+                params.append('prediction', lastAnalysisData.prediction);
+                
+                // Add feature values if available
+                if (lastAnalysisData.features) {
+                    const features = lastAnalysisData.features;
+                    if (features.readability !== undefined) params.append('readability', features.readability);
+                    if (features.vader_sentiment !== undefined) params.append('sentiment', features.vader_sentiment);
+                    if (features.lexical_diversity !== undefined) params.append('diversity', features.lexical_diversity);
+                }
+                
+                // Add the URL being analyzed
+                if (DOM_ELEMENTS.urlInput && DOM_ELEMENTS.urlInput.value) {
+                    params.append('analyzed_url', encodeURIComponent(DOM_ELEMENTS.urlInput.value));
+                }
+                
+                // Add theme preference
+                const isDarkTheme = document.body.classList.contains('dark-theme');
+                params.append('theme', isDarkTheme ? 'dark' : 'light');
+                
+                detailsUrl += `?${params.toString()}`;
+            } else {
+                // If no analysis data, at least pass the theme
+                const isDarkTheme = document.body.classList.contains('dark-theme');
+                detailsUrl += `?theme=${isDarkTheme ? 'dark' : 'light'}`;
+            }
+            
+            window.open(detailsUrl, '_blank');
+        });
+    }
 
     // Feedback buttons
-    DOM_ELEMENTS.thumbsUpBtn.addEventListener('click', () => {
-        selectedFeedback = 'positive';
-        DOM_ELEMENTS.thumbsUpBtn.classList.add('active');
-        DOM_ELEMENTS.thumbsDownBtn.classList.remove('active');
-        DOM_ELEMENTS.feedbackModal.style.display = 'block';
-    });
+    if (DOM_ELEMENTS.agreeBtn) {
+        DOM_ELEMENTS.agreeBtn.addEventListener('click', () => {
+            selectedFeedback = 'positive';
+            DOM_ELEMENTS.agreeBtn.classList.add('active');
+            if (DOM_ELEMENTS.disagreeBtn) {
+                DOM_ELEMENTS.disagreeBtn.classList.remove('active');
+            }
+            // No longer change the UI display when user provides feedback
+            if (DOM_ELEMENTS.feedbackMessage) {
+                DOM_ELEMENTS.feedbackMessage.textContent = 'Thank you! Your feedback helps improve our model.';
+                DOM_ELEMENTS.feedbackMessage.className = 'feedback-message success';
+                setTimeout(() => {
+                    DOM_ELEMENTS.feedbackMessage.textContent = '';
+                    DOM_ELEMENTS.feedbackMessage.className = 'feedback-message';
+                }, 3000);
+            }
+        });
+    }
 
-    DOM_ELEMENTS.thumbsDownBtn.addEventListener('click', () => {
-        selectedFeedback = 'negative';
-        DOM_ELEMENTS.thumbsDownBtn.classList.add('active');
-        DOM_ELEMENTS.thumbsUpBtn.classList.remove('active');
-        DOM_ELEMENTS.feedbackModal.style.display = 'block';
-    });
-
-    // Modal close button
-    DOM_ELEMENTS.closeModal.addEventListener('click', resetFeedbackState);
-
-    // Modal outside click
-    window.addEventListener('click', (event) => {
-        if (event.target === DOM_ELEMENTS.feedbackModal) {
-            resetFeedbackState();
-        }
-    });
+    if (DOM_ELEMENTS.disagreeBtn) {
+        DOM_ELEMENTS.disagreeBtn.addEventListener('click', () => {
+            selectedFeedback = 'negative';
+            DOM_ELEMENTS.disagreeBtn.classList.add('active');
+            if (DOM_ELEMENTS.agreeBtn) {
+                DOM_ELEMENTS.agreeBtn.classList.remove('active');
+            }
+            // No longer change the UI display when user provides feedback
+            if (DOM_ELEMENTS.feedbackMessage) {
+                DOM_ELEMENTS.feedbackMessage.textContent = 'Thank you! Your feedback helps improve our model.';
+                DOM_ELEMENTS.feedbackMessage.className = 'feedback-message success';
+                setTimeout(() => {
+                    DOM_ELEMENTS.feedbackMessage.textContent = '';
+                    DOM_ELEMENTS.feedbackMessage.className = 'feedback-message';
+                }, 3000);
+            }
+        });
+    }
 
     // Submit feedback
     DOM_ELEMENTS.submitFeedback.addEventListener('click', handleFeedback);
 
-    // Learn More button
-    const learnMoreBtn = document.getElementById('learn-more-btn');
-    if (learnMoreBtn) {
-        learnMoreBtn.addEventListener('click', () => {
-            window.open('https://your-learn-more-page.com', '_blank');
-        });
-    }
+    // Initialize statistics
+    initializeStatistics();
 });
 
 // When back is pressed, remove the back button
 backBtn && backBtn.remove();
-
-// Add light/dark mode toggle logic
-const modeToggle = document.getElementById('mode-toggle');
-const body = document.body;
-
-function setMode(mode) {
-    if (mode === 'dark') {
-        body.classList.add('dark-mode');
-        modeToggle.innerHTML = '<i class="fas fa-sun"></i>';
-    } else {
-        body.classList.remove('dark-mode');
-        modeToggle.innerHTML = '<i class="fas fa-moon"></i>';
-    }
-    localStorage.setItem('theme', mode);
-}
-
-modeToggle.addEventListener('click', () => {
-    const isDark = body.classList.contains('dark-mode');
-    setMode(isDark ? 'light' : 'dark');
-});
-
-// On load, set theme from localStorage
-const savedTheme = localStorage.getItem('theme') || 'light';
-setMode(savedTheme);
 
 // Map confidence to 4-level result header
 function getResultLevel(confidence, isFake) {
@@ -300,22 +416,107 @@ function getResultLevel(confidence, isFake) {
 }
 
 // Improved explanations based on features
-function generateExplanations(prediction, features) {
+function generateExplanations(isFake, features) {
     const reasons = [];
-    if (prediction === 'fake') {
-        if (features.readability < 30) reasons.push('The article is hard to read, which is sometimes used to obscure misleading information.');
-        if (features.vader_sentiment < -0.5) reasons.push('The VADER sentiment is strongly negative, indicating a misleading or emotional tone.');
-        if (features.sentiment < -0.3) reasons.push('The overall sentiment is negative, which can be a sign of bias or manipulation.');
-        if (features.word_count > 2000) reasons.push('The article is unusually long, which can be a tactic to overwhelm readers.');
-        if (features.lexical_diversity < 0.3) reasons.push('Low lexical diversity may indicate repetitive or low-quality content.');
-        if (reasons.length === 0) reasons.push('The model detected patterns commonly found in misleading articles.');
-    } else {
-        if (features.readability > 50) reasons.push('The article is easy to read, suggesting clear and straightforward information.');
-        if (features.vader_sentiment > 0.2) reasons.push('The VADER sentiment is positive, indicating a balanced or neutral tone.');
-        if (features.sentiment > 0.1) reasons.push('The overall sentiment is positive, typical of factual reporting.');
-        if (features.word_count >= 500 && features.word_count <= 1500) reasons.push('The article length is appropriate for comprehensive coverage.');
-        if (features.lexical_diversity > 0.5) reasons.push('High lexical diversity suggests a well-written and informative article.');
+    if (!isFake) {  // For real news (high confidence)
+        if (features.readability > 50) reasons.push('The article has good readability, which is common in legitimate news sources.');
+        if (features.sentiment > -0.2 && features.sentiment < 0.2) reasons.push('The article shows balanced sentiment, typical of objective reporting.');
+        if (features.lexical_diversity > 0.5) reasons.push('High lexical diversity suggests professional and varied writing.');
         if (reasons.length === 0) reasons.push('The model detected patterns commonly found in factual articles.');
+    } else {  // For fake news (low confidence)
+        if (features.readability < 30) reasons.push('The article has poor readability, which can be a sign of misleading content.');
+        if (Math.abs(features.sentiment) > 0.5) reasons.push('The article shows extreme sentiment, which may indicate bias or emotional manipulation.');
+        if (features.lexical_diversity < 0.3) reasons.push('Low lexical diversity might indicate repetitive or low-quality content.');
+        if (reasons.length === 0) reasons.push('The model detected patterns commonly found in misleading articles.');
     }
     return reasons;
+}
+
+// Statistics handling
+async function fetchStatistics() {
+    try {
+        const response = await fetch(`${API_URL}/statistics`);
+        if (!response.ok) throw new Error('Failed to fetch statistics');
+        return await response.json();
+    } catch (error) {
+        console.error('Error fetching statistics:', error);
+        return null;
+    }
+}
+
+function updateStatisticsDisplay(stats) {
+    const statsContainer = document.getElementById('statisticsContainer');
+    if (!statsContainer) return;
+
+    // Update total analyses
+    document.getElementById('totalAnalyses').textContent = stats.total_analyses;
+
+    // Update feature averages
+    const features = stats.feature_averages;
+    document.getElementById('avgReadability').textContent = features.readability.toFixed(2);
+    document.getElementById('avgSentiment').textContent = features.sentiment.toFixed(2);
+    document.getElementById('avgLexical').textContent = features.lexical_diversity.toFixed(2);
+
+    // Update confidence distribution
+    const distribution = stats.confidence_distribution;
+    document.getElementById('conf0_25').textContent = distribution['0-25'];
+    document.getElementById('conf26_50').textContent = distribution['26-50'];
+    document.getElementById('conf51_75').textContent = distribution['51-75'];
+    document.getElementById('conf76_100').textContent = distribution['76-100'];
+}
+
+// Enhanced feedback handling
+async function submitFeedback(predictionId, agreed) {
+    try {
+        const response = await fetch(`${API_URL}/feedback`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                prediction_id: predictionId,
+                agreed: agreed
+            })
+        });
+
+        if (!response.ok) throw new Error('Failed to submit feedback');
+        
+        const result = await response.json();
+        if (result.status === 'success') {
+            showFeedbackSuccess();
+        }
+    } catch (error) {
+        console.error('Error submitting feedback:', error);
+        showFeedbackError();
+    }
+}
+
+function showFeedbackSuccess() {
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    if (feedbackMessage) {
+        feedbackMessage.textContent = 'Thank you for your feedback!';
+        feedbackMessage.className = 'feedback-message success';
+        setTimeout(() => {
+            feedbackMessage.textContent = '';
+            feedbackMessage.className = 'feedback-message';
+        }, 3000);
+    }
+}
+
+function showFeedbackError() {
+    const feedbackMessage = document.getElementById('feedbackMessage');
+    feedbackMessage.textContent = 'Failed to submit feedback. Please try again.';
+    feedbackMessage.className = 'feedback-message error';
+    setTimeout(() => {
+        feedbackMessage.textContent = '';
+        feedbackMessage.className = 'feedback-message';
+    }, 3000);
+}
+
+// Initialize statistics display
+async function initializeStatistics() {
+    const stats = await fetchStatistics();
+    if (stats) {
+        updateStatisticsDisplay(stats);
+    }
 }

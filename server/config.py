@@ -9,7 +9,7 @@ class Config:
     DATABASE_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'server/database/feedback.db')
     
     # Model settings
-    MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'model/fake_news_rf_pipeline.pkl')
+    MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'model/rf_model.pkl')
     
     # API settings
     CORS_ORIGINS = [

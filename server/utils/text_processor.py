@@ -1,6 +1,11 @@
 import re
 import string
 from typing import List, Optional
+import textstat
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
+# Initialize VADER sentiment analyzer
+sia = SentimentIntensityAnalyzer()
 
 def clean_text(text: str) -> str:
     """
@@ -29,35 +34,63 @@ def clean_text(text: str) -> str:
     
     return text
 
+def get_readability(text: str) -> float:
+    """
+    Get Flesch Reading Ease score for text.
+    
+    Args:
+        text (str): Input text
+        
+    Returns:
+        float: Readability score
+    """
+    try:
+        return textstat.flesch_reading_ease(text)
+    except Exception:
+        return 50.0
+
+def get_vader_sentiment(text: str) -> float:
+    """
+    Get VADER sentiment score for text.
+    
+    Args:
+        text (str): Input text
+        
+    Returns:
+        float: VADER sentiment score
+    """
+    return sia.polarity_scores(text)['compound']
+
+def get_lexical_diversity(text: str) -> float:
+    """
+    Calculate lexical diversity (unique words / total words).
+    
+    Args:
+        text (str): Input text
+        
+    Returns:
+        float: Lexical diversity score
+    """
+    words = text.split()
+    if not words:
+        return 0.0
+    return len(set(words)) / len(words)
+
 def extract_features(text: str) -> dict:
     """
-    Extract relevant features from text for classification.
-    Returns a dictionary with keys: sentiment, readability, word_count, vader_sentiment.
+    Extract all features used in training.
+    
+    Args:
+        text (str): Input text
+        
+    Returns:
+        dict: Dictionary of extracted features
     """
-    # Sentiment
-    sentiment = analyze_sentiment(text)
-
-    # Readability (Flesch Reading Ease)
-    try:
-        import textstat
-        readability = textstat.flesch_reading_ease(text)
-    except ImportError:
-        readability = 50  # Default if textstat not available
-    except Exception:
-        readability = 50
-
-    # Word count
-    words = text.split()
-    word_count = len(words)
-
-    # VADER sentiment (placeholder, set to 0)
-    vader_sentiment = 0
-
     return {
-        'sentiment': sentiment if sentiment is not None else 0,
-        'readability': readability,
-        'word_count': word_count,
-        'vader_sentiment': vader_sentiment
+        'text': text,  # Raw text for TF-IDF
+        'readability': get_readability(text),
+        'vader_sentiment': get_vader_sentiment(text),
+        'lexical_diversity': get_lexical_diversity(text)
     }
 
 def truncate_text(text: str, max_words: int = 1000) -> str:

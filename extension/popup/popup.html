@@ -1,113 +1,166 @@
 <!DOCTYPE html>
-<html>
-  <head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detector</title>
     <link rel="stylesheet" href="popup.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  </head>
-  <body>
-    <div class="body">
-      <div class="popup-card">
-        <!-- Header Section -->
-        <div class="header">
-          <img src="../images/48.png" alt="Fake News Detector" id="main-logo">
-          <h1>Fake News Detector</h1>
-          <button id="mode-toggle" class="mode-toggle" title="Toggle light/dark mode">
-            <i class="fas fa-moon"></i>
-          </button>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <img src="../images/48.png" alt="Logo" class="logo-img">
+                <h1>Fake News Detector</h1>
+            </div>
+            <button id="themeToggle" class="theme-toggle" aria-label="Toggle theme">
+                <span id="themeIcon" class="theme-icon">🌙</span>
+            </button>
+        </header>
+
+        <!-- URL Input Section -->
+        <div class="input-section">
+            <input type="text" id="urlInput" placeholder="Enter article URL or click Analyze to check current page">
+            <button id="analyzeBtn" class="primary-button">Analyze</button>
         </div>
 
-        <!-- Input Section -->
-        <div class="input-section">
-          <input type="text" id="url-input" placeholder="Enter URL to analyze" />
-          <button id="analyze-btn" class="analyze-btn">
-            <i class="fas fa-search"></i> Analyze
-          </button>
+        <!-- Loading State -->
+        <div id="loadingState" class="loading-state hidden">
+            <div class="spinner"></div>
+            <p>Analyzing article...</p>
         </div>
 
         <!-- Results Section -->
-        <div id="results" class="results-section" style="display: none;">
-          <!-- Result Card -->
-          <div class="result-card">
-            <div class="result-header">
-              <span id="result-icon" class="result-icon"></span>
-              <h2 id="result-title">Result</h2>
-            </div>
-            
-            <div class="confidence-bar">
-              <div class="confidence-text">
-                Confidence: <span id="confidence-value">0%</span>
-              </div>
-              <div class="progress-bar">
-                <div id="confidence-bar-fill" class="progress-bar-fill"></div>
-                <div class="progress-labels">
-                  <span class="progress-label fake-label">Fake</span>
-                  <span class="progress-label real-label">Real</span>
+        <div id="resultsSection" class="results-section hidden">
+            <!-- Classification Header -->
+            <div class="classification-header">
+                <div id="confidenceLabel" class="confidence-label">
+                    <span id="confidenceIcon"></span>
+                    <span id="confidenceText"></span>
                 </div>
-              </div>
+                <div class="confidence-value">
+                    Confidence: <span id="confidencePercent">0</span>%
+                </div>
             </div>
 
-            <div class="why-result">
-              <h3 id="why-title">⚠️ Why this result?</h3>
-              <ul id="result-reasons"></ul>
+            <!-- Confidence Bar -->
+            <div class="confidence-bar-container">
+                <div class="confidence-bar">
+                    <div id="confidenceBarFill"></div>
+                    <div id="confidenceMarker"></div>
+                </div>
+                <!-- Removed Fake/Real labels -->
             </div>
 
-            <div class="features-grid">
-              <div class="feature">
-                <span class="feature-label">Readability Score:</span>
-                <span id="readability-value" class="feature-value">-</span>
-              </div>
-              <div class="feature">
-                <span class="feature-label">VADER Sentiment:</span>
-                <span id="vader-value" class="feature-value">-</span>
-              </div>
-              <div class="feature">
-                <span class="feature-label">Lexical Diversity:</span>
-                <span id="lexical-value" class="feature-value">-</span>
-              </div>
+            <!-- Explanations -->
+            <div class="explanations-section">
+                <h2>⚠️ Why this result?</h2>
+                <ul id="explanationsList"></ul>
             </div>
 
-            <div class="action-buttons">
-              <button id="learn-more-btn" class="expand-btn">
-                <i class="fas fa-info-circle"></i> Learn More
-              </button>
-              <div class="feedback-buttons">
-                <button id="thumbs-up" class="feedback-btn" title="Agree">
-                  <i class="fas fa-thumbs-up"></i>
+            <!-- Features -->
+            <div class="features-section">
+                <h2>📊 Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-label">Readability Score</div>
+                        <div id="readabilityScore" class="feature-value">-</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-label">VADER Sentiment</div>
+                        <div id="vaderSentiment" class="feature-value">-</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-label">Lexical Diversity</div>
+                        <div id="lexicalDiversity" class="feature-value">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions-section">
+                <button id="learnMoreBtn" class="secondary-button">
+                    <span>🔍</span> Learn More
                 </button>
-                <button id="thumbs-down" class="feedback-btn" title="Disagree">
-                  <i class="fas fa-thumbs-down"></i>
-                </button>
-              </div>
+                <div class="feedback-buttons">
+                    <button id="agreeBtn" class="feedback-button">
+                        <span>👍</span> Agree
+                    </button>
+                    <button id="disagreeBtn" class="feedback-button">
+                        <span>👎</span> Disagree
+                    </button>
+                </div>
             </div>
-          </div>
         </div>
 
-        <!-- Default Message -->
-        <div id="default-message" class="default-message">
-          <p>Enter a URL to analyze if it contains possible misleading information using machine learning.</p>
+        <!-- Statistics Section -->
+        <div id="statisticsContainer" class="statistics-section hidden">
+            <h2>📊 Statistics</h2>
+            
+            <!-- Total Analyses -->
+            <div class="stat-card">
+                <div class="stat-label">Total Analyses</div>
+                <div id="totalAnalyses" class="stat-value">0</div>
+            </div>
+
+            <!-- Feature Averages -->
+            <div class="stat-card">
+                <h3>Feature Averages</h3>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">Readability</div>
+                        <div id="avgReadability" class="stat-value">-</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Sentiment</div>
+                        <div id="avgSentiment" class="stat-value">-</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Lexical Diversity</div>
+                        <div id="avgLexical" class="stat-value">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confidence Distribution -->
+            <div class="stat-card">
+                <h3>Confidence Distribution</h3>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-label">0-25%</div>
+                        <div id="conf0_25" class="stat-value">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">26-50%</div>
+                        <div id="conf26_50" class="stat-value">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">51-75%</div>
+                        <div id="conf51_75" class="stat-value">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">76-100%</div>
+                        <div id="conf76_100" class="stat-value">0</div>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- Feedback Message -->
+        <div id="feedbackMessage" class="feedback-message"></div>
+
+        <!-- Hidden input for current prediction ID -->
+        <input type="hidden" id="currentPredictionId" value="">
 
         <!-- Footer -->
-        <div class="footer">
-          <a href="https://github.com/Felipetoledo4815/fake_news_detector_chrome_extension" target="_blank">
-            <i class="fab fa-github"></i> View on GitHub
-          </a>
-        </div>
-      </div>
+        <footer>
+            <a href="https://github.com/Luztz/MLfake-news-detector-chrome-extension.git" target="_blank" class="github-link">
+                View on GitHub
+            </a>
+        </footer>
     </div>
-
-    <!-- Feedback Modal -->
-    <div id="feedback-modal" class="modal">
-      <div class="modal-content">
-        <span class="close">&times;</span>
-        <h3>Provide Feedback</h3>
-        <textarea id="feedback-text" placeholder="Tell us more about your experience..."></textarea>
-        <button id="submit-feedback" class="submit-btn">Submit Feedback</button>
-      </div>
-    </div>
-
-    <!-- Scripts -->
     <script src="popup.js"></script>
-  </body>
+</body>
 </html>
 
