@@ -35,3 +35,6 @@ build/
 # System files
 .DS_Store
 Thumbs.db
+
+# Large dataset files
+model/WELFake_Dataset.csv
