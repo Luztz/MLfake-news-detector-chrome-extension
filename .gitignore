@@ -1,2 +1,37 @@
-model/*.pkl
-model/*.csv
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+*.log
+*.db
+.ipynb_checkpoints/
+*.ipynb_checkpoints/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Model files
+*.joblib
+*.pkl
+*.h5
+*.model
+
+# System files
+.DS_Store
+Thumbs.db
