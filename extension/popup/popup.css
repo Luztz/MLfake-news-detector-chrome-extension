@@ -1,22 +1,25 @@
+/* Add Inter font import at the top */
+@import url('https://rsms.me/inter/inter.css');
+
 /* Root Variables for Theming */
 :root {
     /* Light Theme Colors */
-    --light-bg: #ffffff;
-    --light-text: #333333;
-    --light-border: #e0e0e0;
-    --light-card-bg: #f8f9fa;
-    --light-hover: #f0f0f0;
-    --light-primary: #2196f3;
-    --light-secondary: #757575;
+    --light-bg: #fafbfc;
+    --light-text: #181a1b;
+    --light-border: #e5e7eb;
+    --light-card-bg: #fff;
+    --light-hover: #f3f4f6;
+    --light-primary: #2563eb;
+    --light-secondary: #6b7280;
 
     /* Dark Theme Colors */
-    --dark-bg: #1a1a1a;
-    --dark-text: #ffffff;
-    --dark-border: #404040;
-    --dark-card-bg: #2d2d2d;
-    --dark-hover: #3d3d3d;
-    --dark-primary: #64b5f6;
-    --dark-secondary: #9e9e9e;
+    --dark-bg: #181a1b;
+    --dark-text: #f3f4f6;
+    --dark-border: #23272f;
+    --dark-card-bg: #23272f;
+    --dark-hover: #23272f;
+    --dark-primary: #60a5fa;
+    --dark-secondary: #9ca3af;
 
     /* Confidence Colors */
     --very-fake: #ff4444;
@@ -27,12 +30,12 @@
 
 /* Base Styles */
 body {
-    margin: 0;
-    padding: 0;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    width: 400px;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     background-color: var(--light-bg);
     color: var(--light-text);
+    width: 400px;
+    margin: 0;
+    padding: 0;
     transition: background-color 0.3s, color 0.3s;
 }
 
@@ -42,7 +45,8 @@ body.dark-theme {
 }
 
 .container {
-    padding: 16px;
+    padding: 18px 12px;
+    max-width: 420px;
 }
 
 /* Header Styles */
@@ -50,13 +54,19 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--light-border);
+    padding-bottom: 8px;
+    background: none;
+    box-shadow: none;
+    padding-left: 12px;
 }
 
 .logo {
     display: flex;
     align-items: center;
     gap: 8px;
+    margin-left: 8px;
 }
 
 .logo-img {
@@ -65,8 +75,15 @@ header {
 }
 
 .logo h1 {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
     margin: 0;
+    letter-spacing: -0.5px;
+    color: var(--light-text);
+}
+
+.dark-theme .logo h1 {
+    color: var(--dark-text);
 }
 
 .theme-toggle {
@@ -91,7 +108,7 @@ header {
 .input-section {
     display: flex;
     gap: 8px;
-    margin-bottom: 16px;
+    margin-bottom: 18px;
 }
 
 #urlInput {
@@ -146,15 +163,13 @@ header {
 }
 
 /* Results Section */
-.results-section {
+.results-section, .statistics-section {
     background-color: var(--light-card-bg);
     border-radius: 8px;
-    padding: 16px;
-    margin-top: 16px;
-}
-
-.dark-theme .results-section {
-    background-color: var(--dark-card-bg);
+    padding: 18px 14px;
+    margin-top: 18px;
+    box-shadow: none;
+    border: 1px solid var(--light-border);
 }
 
 .classification-header {
@@ -236,10 +251,12 @@ header {
 }
 
 .feature-card {
-    background-color: var(--light-bg);
-    padding: 12px;
+    background: var(--light-hover);
     border-radius: 6px;
-    text-align: center;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: none;
+    border: 1px solid var(--light-border);
 }
 
 .dark-theme .feature-card {
@@ -327,7 +344,11 @@ header {
 
 /* Footer */
 footer {
+    border-top: 1px solid var(--light-border);
     margin-top: 24px;
+    padding-top: 12px;
+    background: none;
+    box-shadow: none;
     text-align: center;
 }
 
@@ -356,17 +377,6 @@ footer {
 }
 
 /* Statistics Section */
-.statistics-section {
-    margin-top: 24px;
-    padding: 16px;
-    background-color: var(--light-card-bg);
-    border-radius: 8px;
-}
-
-.dark-theme .statistics-section {
-    background-color: var(--dark-card-bg);
-}
-
 .statistics-section h2 {
     margin: 0 0 16px 0;
     font-size: 1.2rem;
@@ -446,4 +456,15 @@ footer {
 .feedback-message.error {
     background-color: rgba(244, 67, 54, 0.1);
     color: #f44336;
+}
+
+/* Ensure all text in dark mode uses --dark-text */
+.dark-theme, .dark-theme .results-section, .dark-theme .statistics-section, .dark-theme .feature-card, .dark-theme .feature-label, .dark-theme .feature-value, .dark-theme .stat-label, .dark-theme .stat-value, .dark-theme .confidence-label, .dark-theme .confidence-value, .dark-theme .input-section, .dark-theme .actions-section, .dark-theme .feedback-message, .dark-theme .secondary-button, .dark-theme .primary-button {
+    color: var(--dark-text) !important;
+}
+
+/* Fix card backgrounds in dark mode */
+.dark-theme .results-section, .dark-theme .statistics-section, .dark-theme .feature-card, .dark-theme .stat-card {
+    background-color: var(--dark-card-bg) !important;
+    border-color: var(--dark-border) !important;
 }

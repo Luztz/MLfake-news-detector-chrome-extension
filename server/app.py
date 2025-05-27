@@ -26,6 +26,8 @@ import traceback
 from sklearn.base import BaseEstimator, TransformerMixin
 import requests
 import math
+from urllib.parse import urlparse
+import logging
 
 # Add the server directory to Python path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -138,6 +140,7 @@ from server.utils.database import init_db, save_prediction, save_feedback
 from server.config import Config
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2 MB limit
 CORS(app)
 
 # Initialize database
@@ -304,7 +307,7 @@ def load_model():
     global model
     try:
         model_path = Config.MODEL_PATH
-        model_url = "https://drive.google.com/uc?export=download&id=1Zha6HPQ7CzlHYQV_tAXgyMx5tA0_TCkh"
+        model_url = "https://drive.google.com/uc?export=download&id=1kWMOE9yOPQlY_uoXhv8jvf4K1iifhViN"
 
         # Check if model exists
         if not os.path.exists(model_path):
@@ -411,62 +414,61 @@ def generate_explanation(features, confidence):
     return explanations
 
 def is_valid_url(url):
-    # Simple regex for HTTP/HTTPS URLs
-    return re.match(r"^https?://[\w.-]+(?:\.[\w\.-]+)+[/\w\-\._~:/?#[\]@!$&'()*+,;=.]*$", url)
+    try:
+        result = urlparse(url)
+        return result.scheme in ("http", "https") and bool(result.netloc)
+    except:
+        return False
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
+        if request.content_type != 'application/json':
+            return jsonify({'error': 'Invalid content type'}), 400
         # Check if model is loaded
         if model is None:
             if not load_model():
                 return jsonify({
                     'error': 'Model not available. Please ensure the model file exists in the model directory.'
                 }), 503
-
         data = request.get_json()
         url = data.get('url')
-        
         if not url:
             return jsonify({'error': 'URL is required'}), 400
-        
-        # Input validation: Only allow valid HTTP/HTTPS URLs
         if not is_valid_url(url):
             return jsonify({'error': 'Invalid URL. Please enter a valid http or https URL.'}), 400
-
-        # Extract article content
         content = extract_article_content(url)
         if not content:
             return jsonify({'error': 'Could not extract article content'}), 400
-        
-        # Preprocess the content
         processed_content = clean_text(content)
-        
-        # Extract features using the same pipeline as training
         features = extract_features(processed_content)
         if features is None:
             return jsonify({'error': 'Feature extraction failed'}), 500
-        
         try:
-            # Make prediction using the model pipeline
             prediction = model.predict(features)[0]
             proba = model.predict_proba(features)[0].tolist() if hasattr(model, 'predict_proba') else None
-            
             print(f"Debug - Prediction results:")
             print(f"Raw prediction: {prediction}")
             print(f"Probabilities: {proba}")
-            
-            # Get feature values for response
             feature_dict = features.to_dict(orient='records')[0]
             confidence = proba[1] if proba else 0.5
-            
-            # Get readability interpretation if available
             readability_info = getattr(get_readability, 'last_interpretation', None)
             readability_score = feature_dict.get('readability', 0)
-            
-            # Generate explanations
             explanations = generate_explanation(feature_dict, confidence)
-            
+
+            # Save prediction to DB and get prediction_id
+            from utils.database import save_prediction
+            prediction_id = save_prediction(
+                url,
+                int(prediction),
+                confidence,
+                {
+                    'readability': readability_score,
+                    'vader_sentiment': feature_dict['vader_sentiment'],
+                    'lexical_diversity': feature_dict['lexical_diversity']
+                }
+            )
+
             return jsonify({
                 'prediction': int(prediction),
                 'confidence': confidence,
@@ -476,18 +478,15 @@ def predict():
                     'lexical_diversity': feature_dict['lexical_diversity']
                 },
                 'readability_info': readability_info,
-                'explanations': explanations
+                'explanations': explanations,
+                'prediction_id': prediction_id
             })
-            
         except Exception as e:
-            print(f"Error during prediction: {str(e)}")
-            traceback.print_exc()
-            return jsonify({'error': 'Prediction failed', 'details': str(e)}), 500
-            
+            logging.error("Internal server error during prediction", exc_info=True)
+            return jsonify({'error': 'Internal server error. Please try again later.'}), 500
     except Exception as e:
-        print(f"Error in predict route: {str(e)}")
-        traceback.print_exc()
-        return jsonify({'error': 'Server error', 'details': str(e)}), 500
+        logging.error("Internal server error in predict route", exc_info=True)
+        return jsonify({'error': 'Internal server error. Please try again later.'}), 500
 
 @app.route('/statistics', methods=['GET'])
 def get_statistics():
@@ -519,15 +518,13 @@ def feedback():
         data = request.get_json()
         prediction_id = data.get('prediction_id')
         agreed = data.get('agreed')
-        
         if prediction_id is None or agreed is None:
             return jsonify({'error': 'prediction_id and agreed are required'}), 400
-        
         save_feedback(prediction_id, agreed)
         return jsonify({'status': 'success', 'message': 'Feedback recorded'})
     except Exception as e:
-        print(f"Error saving feedback: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logging.error("Internal server error in feedback route", exc_info=True)
+        return jsonify({'error': 'Internal server error. Please try again later.'}), 500
 
 @app.route('/info')
 def info():
@@ -621,4 +618,4 @@ def extension_images(filename):
 if __name__ == '__main__':
     # Try to load the model on startup
     load_model()
-    app.run(debug=True) 
+    app.run(debug=False) 
