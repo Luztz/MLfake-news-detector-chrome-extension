@@ -129,9 +129,9 @@ const updateResultDisplay = (data) => {
         DOM_ELEMENTS.confidenceBarFill.style.width = `${confidence}%`;
         DOM_ELEMENTS.confidenceMarker.style.left = `${confidence}%`;
         
-        // Update bar color only for fake news (red)
+        // Update bar color based on classification
         if (isReal) {
-            DOM_ELEMENTS.confidenceBarFill.style.backgroundColor = ''; // No background color for real news
+            DOM_ELEMENTS.confidenceBarFill.style.backgroundColor = '#4CAF50'; // Green for real news
         } else {
             DOM_ELEMENTS.confidenceBarFill.style.backgroundColor = '#F44336'; // Red for fake news
         }
@@ -242,18 +242,14 @@ const handleAnalyze = async () => {
 
 const handleFeedback = async () => {
     if (!selectedFeedback) return;
-
     try {
         await submitFeedback(
-            DOM_ELEMENTS.urlInput.value,
-            selectedFeedback,
-            DOM_ELEMENTS.confidenceText.value
+            DOM_ELEMENTS.currentPredictionId.value,
+            selectedFeedback
         );
-        
-        alert('Thank you for your feedback!');
-        resetFeedbackState();
     } catch (error) {
-        showError(error.message);
+        console.error('Error during feedback submission:', error);
+        showError('Failed to submit feedback.');
     }
 };
 
@@ -446,23 +442,67 @@ async function fetchStatistics() {
 
 function updateStatisticsDisplay(stats) {
     const statsContainer = document.getElementById('statisticsContainer');
-    if (!statsContainer) return;
-
+    if (!statsContainer || !stats) return;
     // Update total analyses
-    document.getElementById('totalAnalyses').textContent = stats.total_analyses;
-
+    if (stats.total_analyses !== undefined && stats.total_analyses !== null) {
+        document.getElementById('totalAnalyses').textContent = stats.total_analyses;
+    } else {
+        document.getElementById('totalAnalyses').textContent = '-';
+    }
     // Update feature averages
     const features = stats.feature_averages;
-    document.getElementById('avgReadability').textContent = features.readability.toFixed(2);
-    document.getElementById('avgSentiment').textContent = features.sentiment.toFixed(2);
-    document.getElementById('avgLexical').textContent = features.lexical_diversity.toFixed(2);
-
+    if (features) {
+        if (features.readability !== undefined && features.readability !== null) {
+            document.getElementById('avgReadability').textContent = features.readability.toFixed(2);
+        } else {
+            document.getElementById('avgReadability').textContent = '-';
+        }
+        if (features.sentiment !== undefined && features.sentiment !== null) {
+            document.getElementById('avgSentiment').textContent = features.sentiment.toFixed(2);
+        } else {
+            document.getElementById('avgSentiment').textContent = '-';
+        }
+        if (features.lexical_diversity !== undefined && features.lexical_diversity !== null) {
+            document.getElementById('avgLexical').textContent = features.lexical_diversity.toFixed(2);
+        } else {
+            document.getElementById('avgLexical').textContent = '-';
+        }
+    } else {
+        // Set all feature average fields to '-' if features are missing
+        document.getElementById('avgReadability').textContent = '-';
+        document.getElementById('avgSentiment').textContent = '-';
+        document.getElementById('avgLexical').textContent = '-';
+    }
     // Update confidence distribution
     const distribution = stats.confidence_distribution;
-    document.getElementById('conf0_25').textContent = distribution['0-25'];
-    document.getElementById('conf26_50').textContent = distribution['26-50'];
-    document.getElementById('conf51_75').textContent = distribution['51-75'];
-    document.getElementById('conf76_100').textContent = distribution['76-100'];
+    if (distribution) {
+        if (distribution['0-25'] !== undefined && distribution['0-25'] !== null) {
+            document.getElementById('conf0_25').textContent = distribution['0-25'];
+        } else {
+             document.getElementById('conf0_25').textContent = '-';
+        }
+         if (distribution['26-50'] !== undefined && distribution['26-50'] !== null) {
+            document.getElementById('conf26_50').textContent = distribution['26-50'];
+        } else {
+             document.getElementById('conf26_50').textContent = '-';
+        }
+         if (distribution['51-75'] !== undefined && distribution['51-75'] !== null) {
+            document.getElementById('conf51_75').textContent = distribution['51-75'];
+        } else {
+             document.getElementById('conf51_75').textContent = '-';
+        }
+         if (distribution['76-100'] !== undefined && distribution['76-100'] !== null) {
+            document.getElementById('conf76_100').textContent = distribution['76-100'];
+        } else {
+             document.getElementById('conf76_100').textContent = '-';
+        }
+    } else {
+        // Set all distribution fields to '-' if distribution is missing
+        document.getElementById('conf0_25').textContent = '-';
+        document.getElementById('conf26_50').textContent = '-';
+        document.getElementById('conf51_75').textContent = '-';
+        document.getElementById('conf76_100').textContent = '-';
+    }
 }
 
 // Enhanced feedback handling

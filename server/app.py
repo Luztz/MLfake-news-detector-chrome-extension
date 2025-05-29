@@ -28,6 +28,8 @@ import requests
 import math
 from urllib.parse import urlparse
 import logging
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 # Add the server directory to Python path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -148,6 +150,12 @@ init_db()
 
 # Global variable for model
 model = None
+
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["20 per minute"]
+)
 
 def get_readability(text):
     try:
@@ -421,6 +429,7 @@ def is_valid_url(url):
         return False
 
 @app.route('/predict', methods=['POST'])
+@limiter.limit("10 per minute")
 def predict():
     try:
         if request.content_type != 'application/json':
@@ -490,26 +499,24 @@ def predict():
 
 @app.route('/statistics', methods=['GET'])
 def get_statistics():
-    """Get statistics about predictions and feedback."""
     try:
         stats = get_statistics()
         if stats is None:
             return jsonify({'error': 'Failed to retrieve statistics'}), 500
         return jsonify(stats)
     except Exception as e:
-        print(f"Error getting statistics: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logging.error("Internal server error in /statistics", exc_info=True)
+        return jsonify({'error': 'Internal server error. Please try again later.'}), 500
 
 @app.route('/recent', methods=['GET'])
 def get_recent():
-    """Get recent analyses with feedback."""
     try:
         limit = request.args.get('limit', default=10, type=int)
         analyses = get_recent_analyses(limit)
         return jsonify(analyses)
     except Exception as e:
-        print(f"Error getting recent analyses: {str(e)}")
-        return jsonify({'error': str(e)}), 500
+        logging.error("Internal server error in /recent", exc_info=True)
+        return jsonify({'error': 'Internal server error. Please try again later.'}), 500
 
 @app.route('/feedback', methods=['POST'])
 def feedback():

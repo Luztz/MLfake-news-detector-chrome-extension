@@ -205,12 +205,6 @@ header {
     border-radius: 4px;
     position: relative;
     margin-bottom: 8px;
-    background: linear-gradient(to right, 
-        var(--very-fake) 0%, 
-        var(--likely-fake) 25%, 
-        var(--likely-real) 50%, 
-        var(--very-real) 75%
-    );
 }
 
 #confidenceBarFill {
