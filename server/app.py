@@ -34,90 +34,6 @@ from flask_limiter.util import get_remote_address
 # Add the server directory to Python path for imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Define TextSelector class
-class TextSelector(BaseEstimator, TransformerMixin):
-    def __init__(self, key=None):
-        self.key = key
-
-    def fit(self, x, y=None):
-        return self
-
-    def transform(self, data_dict):
-        # Use a default key if not set
-        key = getattr(self, 'key', None)
-        if key is None:
-            # Try to infer the key if possible
-            if isinstance(data_dict, pd.DataFrame):
-                key = data_dict.columns[0]
-            elif hasattr(data_dict, 'keys'):
-                key = list(data_dict.keys())[0]
-            else:
-                raise AttributeError("No key set for TextSelector and could not infer from input.")
-            self.key = key
-        if isinstance(data_dict, pd.DataFrame):
-            return data_dict[key].values
-        return data_dict[key]
-
-    def __setstate__(self, state):
-        # Called during unpickling
-        self.__dict__.update(state)
-        if 'key' not in self.__dict__:
-            self.key = None
-
-# Define MetaSelector class
-class MetaSelector(BaseEstimator, TransformerMixin):
-    def __init__(self, feature_names):
-        self.feature_names = feature_names
-
-    def fit(self, x, y=None):
-        return self
-
-    def transform(self, X):
-        return X[self.feature_names]
-
-# Define select_sentiment class
-class select_sentiment(BaseEstimator, TransformerMixin):
-    def __init__(self):
-        self.sia = SentimentIntensityAnalyzer()
-
-    def fit(self, x, y=None):
-        return self
-
-    def transform(self, texts):
-        return np.array([self.sia.polarity_scores(text)['compound'] for text in texts])
-
-# Define select_readability class
-class select_readability(BaseEstimator, TransformerMixin):
-    def __init__(self):
-        pass
-
-    def fit(self, x, y=None):
-        return self
-
-    def transform(self, texts):
-        return np.array([textstat.flesch_reading_ease(text) for text in texts])
-
-# Define select_word_count class
-class select_word_count(BaseEstimator, TransformerMixin):
-    def __init__(self):
-        pass
-
-    def fit(self, x, y=None):
-        return self
-
-    def transform(self, texts):
-        return np.array([len(text.split()) for text in texts])
-
-# Define select_vader_sentiment class
-class select_vader_sentiment(BaseEstimator, TransformerMixin):
-    def __init__(self):
-        self.sia = SentimentIntensityAnalyzer()
-
-    def fit(self, x, y=None):
-        return self
-
-    def transform(self, texts):
-        return np.array([self.sia.polarity_scores(text)['compound'] for text in texts])
 
 # Download required NLTK data
 try:
@@ -140,6 +56,9 @@ sia = SentimentIntensityAnalyzer()
 from server.utils.text_processor import clean_text, get_key_phrases
 from server.utils.database import init_db, save_prediction, save_feedback
 from server.config import Config
+
+# Import custom transformers from model.transformers
+from model.transformers import TextSelector, MetaSelector, SentimentSelector, ReadabilitySelector, WordCountSelector, VaderSentimentSelector
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2 MB limit
