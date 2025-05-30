@@ -58,7 +58,7 @@ from server.utils.database import init_db, save_prediction, save_feedback
 from server.config import Config
 
 # Import custom transformers from model.transformers
-from model.transformers import TextSelector, MetaSelector, SentimentSelector, ReadabilitySelector, WordCountSelector, VaderSentimentSelector
+from model.transformers import TextSelector, SentimentSelector, ReadabilitySelector, WordCountSelector, VaderSentimentSelector
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2 MB limit
